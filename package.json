@@ -1,0 +1,32 @@
+{
+  "name": "automation-selector-picker",
+  "version": "0.0.1",
+  "description": "Chrome extension to pick elements and get XPath, CSS, Playwright, Cypress, and Selenium locators.",
+  "type": "module",
+  "author": "Miftah Ramadhan",
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "tsc && vite build && node scripts/copy-manifest.cjs public",
+    "build:dist": "tsc && cross-env VITE_OUT_DIR=dist vite build && node scripts/copy-manifest.cjs dist",
+    "package": "npm run build:dist && (cd dist && zip -r ../element-locator-picker.zip .)",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.254",
+    "@types/node": "^25.2.3",
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "cross-env": "^10.1.0",
+    "jsdom": "^23.0.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10",
+    "vitest": "^1.1.0"
+  }
+}

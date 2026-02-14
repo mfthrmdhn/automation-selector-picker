@@ -1,0 +1,55 @@
+body {
+  width: 320px;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  color: #1e293b;
+}
+
+.popup {
+  padding: 16px;
+}
+
+.popup h1 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.hint, .sub {
+  margin: 0 0 8px 0;
+  line-height: 1.45;
+  color: #475569;
+}
+
+kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-family: inherit;
+  background: #e2e8f0;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+}
+
+.btn {
+  margin-top: 12px;
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  background: #6366f1;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: #4f46e5;
+}
+
+.btn:active {
+  background: #4338ca;
+}
