@@ -37,7 +37,7 @@ export function getHighlightStyles(rootId: string): string {
     #${rootId} { position: fixed; inset: 0; z-index: 2147483647; pointer-events: none; }
     #${rootId} * { box-sizing: border-box; }
     .selector-picker-overlay { position: fixed; inset: 0; pointer-events: auto; cursor: crosshair; }
-    .selector-picker-hint { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); background: #1a1a2e; color: #eee; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-family: system-ui, sans-serif; pointer-events: none; box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
+    .selector-picker-hint { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a1a2e; color: #eee; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-family: system-ui, sans-serif; pointer-events: none; box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
     .${HIGHLIGHT_CLASS} { position: fixed; pointer-events: none; outline: 2px solid #6366f1; outline-offset: 2px; border-radius: 2px; transition: top 0.05s, left 0.05s, width 0.05s, height 0.05s; }
     .selector-picker-panel { position: fixed; bottom: 24px; right: 24px; width: 420px; max-width: calc(100vw - 48px); max-height: 70vh; background: #1a1a2e; color: #e2e8f0; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); font-family: system-ui, sans-serif; pointer-events: auto; overflow: hidden; opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0.2s; }
     .selector-picker-panel-visible { opacity: 1; visibility: visible; }

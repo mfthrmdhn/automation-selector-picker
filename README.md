@@ -13,7 +13,7 @@
 ## Project structure
 
 ```
-├── manifest.json        # Single source for extension manifest (copied to public/ and dist/)
+├── manifest.json        # Single source for extension manifest (copied to public/ on build)
 ├── popup.html           # Popup HTML entry (Vite builds to public/popup.html)
 ├── package.json
 ├── tsconfig.json
@@ -27,7 +27,6 @@
 │   ├── content.js      # Built from src/content/index.ts
 │   ├── popup.html      # Built from root popup.html
 │   └── assets/         # Popup bundle (popup.js, popup.css)
-├── dist/                # Distribution build (no source maps); created by npm run build:dist
 ├── scripts/
 │   └── copy-manifest.cjs  # Copies root manifest.json to public/ or dist/
 ├── src/
@@ -61,32 +60,14 @@ Set or confirm the shortcut at `chrome://extensions/shortcuts`.
 - `npm run typecheck` – Type-check only (`tsc --noEmit`)
 - `npm run build` – Type-check, build into `public/`, copy manifest
 - `npm run dev` – Build in watch mode (run `build` once first so `public/` has manifest)
-- `npm run build:dist` – Build for distribution: output to `dist/` with **no source maps**
-- `npm run package` – Run `build:dist` then zip `dist/` → `element-locator-picker.zip`
 - `npm run test` – Run tests
 - `npm run test:watch` – Run tests in watch mode
 
 ## Development
 
-- **Changing the manifest** (name, version, permissions): edit **`manifest.json`** at the project root. It is copied to `public/` and `dist/` on build.
+- **Changing the manifest** (name, version, permissions): edit **`manifest.json`** at the project root. It is copied to `public/` on build.
 - **Adding a new locator adapter**: add a module in `src/adapters/`, then register it in `src/core/selector-engine.ts` and in the content script UI (e.g. `src/content/event-manager.ts` or highlighter).
 - **Tests**: `src/core` and adapters are unit-tested in `tests/`. Run `npm run test` or `npm run test:watch`.
-
-## Distribution (share without source)
-
-To share the extension **without** your source code:
-
-1. Run **`npm run package`**. This will:
-   - Build the extension into **`dist/`** with minified JS and **no `.map` files** (so original source isn’t included).
-   - Create **`element-locator-picker.zip`** at the project root.
-
-2. Share either:
-   - The **`element-locator-picker.zip`** file, or  
-   - The **`dist/`** folder (e.g. zipped yourself).
-
-3. Recipients can:
-   - **Load unpacked**: In Chrome go to `chrome://extensions` → Developer mode → **Load unpacked** → select the unzipped folder (or `dist/`).
-   - **Chrome Web Store**: Upload the zip when publishing the extension.
 
 ## Usage
 

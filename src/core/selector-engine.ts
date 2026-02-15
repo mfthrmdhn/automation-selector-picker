@@ -11,13 +11,22 @@ import { getPlaywrightLocator } from '../adapters/playwright-adapter';
 import { getCypressLocator } from '../adapters/cypress-adapter';
 import { getSeleniumLocator } from '../adapters/selenium-adapter';
 
-export function getLocatorsForElement(element: Element): ElementLocators {
+export interface GetLocatorsOptions {
+  /** Attribute name for test IDs (e.g. 'data-testid', 'data-qaid'). Defaults to 'data-testid'. */
+  testIdAttribute?: string;
+}
+
+export function getLocatorsForElement(
+  element: Element,
+  options: GetLocatorsOptions = {}
+): ElementLocators {
+  const testIdAttribute = options.testIdAttribute ?? 'data-testid';
   const xpath = generateXPath(element);
   const css = generateCSS(element);
-  const attrs = analyzeAttributes(element);
+  const attrs = analyzeAttributes(element, testIdAttribute);
 
   const other: Record<string, string> = {};
-  if (attrs.testId) other['data-testid'] = attrs.testId;
+  if (attrs.testId) other[testIdAttribute] = attrs.testId;
   if (attrs.accessibleName && attrs.accessibleName !== attrs.textContent) {
     if (element.getAttribute('aria-label')) other['aria-label'] = attrs.accessibleName;
     if (element.getAttribute('title')) other['title'] = attrs.accessibleName;
@@ -28,7 +37,7 @@ export function getLocatorsForElement(element: Element): ElementLocators {
     xpath,
     css,
     playwright: getPlaywrightLocator(element, { xpath, css, attrs }),
-    cypress: getCypressLocator(element, { xpath, css, attrs }),
+    cypress: getCypressLocator(element, { xpath, css, attrs }, testIdAttribute),
     selenium: getSeleniumLocator(element, { xpath, css, attrs }),
     other,
   };

@@ -7,8 +7,6 @@
   "scripts": {
     "dev": "vite build --watch",
     "build": "tsc && vite build && node scripts/copy-manifest.cjs public",
-    "build:dist": "tsc && cross-env VITE_OUT_DIR=dist vite build && node scripts/copy-manifest.cjs dist",
-    "package": "npm run build:dist && (cd dist && zip -r ../element-locator-picker.zip .)",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"

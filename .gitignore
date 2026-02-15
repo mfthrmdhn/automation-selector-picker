@@ -19,3 +19,7 @@ public/
 coverage/
 *.log
 .vitest/
+
+# Other
+future-plans.md
+build.mjs

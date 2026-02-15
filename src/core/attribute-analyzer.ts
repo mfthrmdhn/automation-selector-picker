@@ -4,6 +4,7 @@
 
 export interface AttributeAnalysis {
   testId: string | null;
+  customId: string | null;
   role: string | null;
   accessibleName: string | null;
   textContent: string | null;
@@ -43,10 +44,15 @@ function getShortText(el: Element): string | null {
 
 /**
  * Analyze an element's attributes for selector generation.
+ * @param testIdAttribute - Attribute name for test IDs (e.g. 'data-testid', 'data-qa'). Defaults to 'data-testid'.
  */
-export function analyzeAttributes(element: Element): AttributeAnalysis {
+export function analyzeAttributes(
+  element: Element,
+  testIdAttribute: string = 'data-testid'
+): AttributeAnalysis {
   return {
-    testId: element.getAttribute('data-testid'),
+    testId: element.getAttribute(testIdAttribute),
+    customId: null,
     role: element.getAttribute('role') || inferRole(element),
     accessibleName:
       element.getAttribute('aria-label') ||

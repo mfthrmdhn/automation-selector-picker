@@ -13,14 +13,15 @@ export interface LocatorContext {
 
 export function getCypressLocator(
   element: Element,
-  { xpath, css, attrs }: LocatorContext
+  { xpath, css, attrs }: LocatorContext,
+  testIdAttribute: string = 'data-testid'
 ): string {
   const dataCy = element.getAttribute('data-cy');
   if (dataCy) {
     return `cy.get('${escapeSingleQuoted(dataCy)}')`;
   }
   if (attrs.testId) {
-    return `cy.get('[data-testid="${escapeSingleQuoted(attrs.testId)}"]')`;
+    return `cy.get('[${testIdAttribute}="${escapeSingleQuoted(attrs.testId)}"]')`;
   }
   if (css && css.length < 200) {
     return `cy.get('${escapeSingleQuoted(css)}')`;

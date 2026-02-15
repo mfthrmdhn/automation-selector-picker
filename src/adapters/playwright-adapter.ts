@@ -18,6 +18,9 @@ export function getPlaywrightLocator(
   if (attrs.testId) {
     return `page.getByTestId('${escapeSingleQuoted(attrs.testId)}')`;
   }
+  if (attrs.customId) {
+    return `page.getByTestId('${escapeSingleQuoted(attrs.customId)}')`;
+  }
   if (attrs.role && attrs.accessibleName) {
     const name = escapeSingleQuoted(attrs.accessibleName.trim());
     return `page.getByRole('${attrs.role}', { name: '${name}' })`;
