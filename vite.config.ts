@@ -3,10 +3,24 @@ import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
+/** Wraps content script in an IIFE so re-injection in the same tab doesn't cause "Identifier has already been declared". */
+function contentScriptIIFE() {
+  return {
+    name: 'content-script-iife',
+    apply: 'build',
+    generateBundle(_, bundle) {
+      const content = bundle['content.js'];
+      if (content && content.type === 'chunk') {
+        content.code = `(function(){${content.code}})();`;
+      }
+    },
+  };
+}
+
 export default defineConfig({
   base: './',
   publicDir: false, // avoid conflict: we use public/ as outDir for the extension
-  plugins: [react()],
+  plugins: [react(), contentScriptIIFE()],
   resolve: {
     alias: { '@': path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'src') },
   },

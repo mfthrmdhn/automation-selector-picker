@@ -25,7 +25,7 @@ export function createOverlay(root: HTMLDivElement): {
   const overlay = document.createElement('div');
   overlay.className = 'selector-picker-overlay';
   overlay.innerHTML =
-    '<span class="selector-picker-hint">Click an element to get locators · Esc to close</span>';
+    '<span class="selector-picker-hint">Click an element to get locators · Esc to close panel · Shortcut to exit</span>';
 
   const highlight = createHighlightElement();
   root.appendChild(overlay);
@@ -90,21 +90,25 @@ export function createOverlay(root: HTMLDivElement): {
   }
 
   function showPanelForElement(element: Element) {
-    const locators = getLocatorsForElement(element);
-    const container = panel.querySelector('.selector-picker-locators');
-    if (!container) return;
-    container.innerHTML = '';
-    container.appendChild(createLocatorRow('XPath', locators.xpath, 'picker-xpath'));
-    container.appendChild(createLocatorRow('CSS', locators.css, 'picker-css'));
-    container.appendChild(createLocatorRow('Playwright', locators.playwright, 'picker-playwright'));
-    container.appendChild(createLocatorRow('Cypress', locators.cypress, 'picker-cypress'));
-    container.appendChild(createLocatorRow('Selenium', locators.selenium, 'picker-selenium'));
-    const otherEntries = Object.entries(locators.other);
-    if (otherEntries.length > 0) {
-      const otherText = otherEntries.map(([k, v]) => `${k}: ${v}`).join('\n');
-      container.appendChild(createLocatorRow('Other', otherText, 'picker-other'));
-    }
-    panel.classList.add('selector-picker-panel-visible');
+    chrome.storage.sync.get({ testIdAttribute: 'data-testid' }, (result) => {
+      const locators = getLocatorsForElement(element, {
+        testIdAttribute: result.testIdAttribute || 'data-testid',
+      });
+      const container = panel.querySelector('.selector-picker-locators');
+      if (!container) return;
+      container.innerHTML = '';
+      container.appendChild(createLocatorRow('XPath', locators.xpath, 'picker-xpath'));
+      container.appendChild(createLocatorRow('CSS', locators.css, 'picker-css'));
+      container.appendChild(createLocatorRow('Playwright', locators.playwright, 'picker-playwright'));
+      container.appendChild(createLocatorRow('Cypress', locators.cypress, 'picker-cypress'));
+      container.appendChild(createLocatorRow('Selenium', locators.selenium, 'picker-selenium'));
+      const otherEntries = Object.entries(locators.other);
+      if (otherEntries.length > 0) {
+        const otherText = otherEntries.map(([k, v]) => `${k}: ${v}`).join('\n');
+        container.appendChild(createLocatorRow('Other', otherText, 'picker-other'));
+      }
+      panel.classList.add('selector-picker-panel-visible');
+    });
   }
 
   return {
@@ -129,8 +133,7 @@ export function injectStyles(root: HTMLDivElement): void {
 export function attachOverlayListeners(
   overlay: HTMLDivElement,
   panel: HTMLDivElement,
-  api: ReturnType<typeof createOverlay>,
-  teardown: TeardownFn
+  api: ReturnType<typeof createOverlay>
 ): void {
   overlay.addEventListener('mousemove', (e) => {
     api.onMove(e.clientX, e.clientY);
@@ -141,7 +144,7 @@ export function attachOverlayListeners(
     const el = api.onOverlayClick();
     if (el) api.showPanelForElement(el);
   });
-  panel.querySelector('.selector-picker-close')?.addEventListener('click', teardown);
+  panel.querySelector('.selector-picker-close')?.addEventListener('click', () => api.hidePanel());
   panel.querySelector('.selector-picker-pick-another')?.addEventListener('click', () => {
     api.hidePanel();
   });
