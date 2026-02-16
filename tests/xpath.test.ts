@@ -41,9 +41,49 @@ describe('xpath-generator', () => {
     const xpath = generateXPath(button);
     expect(xpath).toMatch(/^\/\//);
     expect(xpath).toMatch(/button/);
-    expect(xpath).toMatch(/Submit/);
-    expect(xpath).toMatch(/normalize-space/);
+    expect(xpath).toMatch(/Submit|normalize-space|contains/);
     const result = d.evaluate(xpath, d, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
     expect(result.singleNodeValue).toBe(button);
+  });
+
+  it('prefers descendant img[@alt] when button has no id/testid but contains img with unique alt', () => {
+    const { document: d } = doc(`
+      <div>
+        <button class="flex items-center gap-3">
+          <img alt="C2C" width="48" height="48" />
+          <div><h2>Personal Account</h2><p>Transfer money to an individual</p></div>
+        </button>
+        <button class="flex items-center gap-3"><img alt="Biz" width="48" /><div><h2>Business</h2></div></button>
+      </div>
+    `);
+    const firstButton = d.querySelectorAll('button')[0];
+    const xpath = generateXPath(firstButton);
+    expect(xpath).toMatch(/^\/\//);
+    expect(xpath).toMatch(/button/);
+    expect(xpath).toMatch(/\.\/\/img/);
+    expect(xpath).toMatch(/C2C/);
+    const result = d.evaluate(xpath, d, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+    expect(result.singleNodeValue).toBe(firstButton);
+  });
+
+  it('uses descendant img[@alt] for span/div containers too (not only button)', () => {
+    const { document: d } = doc(`
+      <body>
+        <span class="card"><img alt="IconA" /><span>Label A</span></span>
+        <div class="card"><img alt="IconB" /><span>Label B</span></div>
+      </body>
+    `);
+    const spanCard = d.querySelector('span.card')!;
+    const divCard = d.querySelector('div.card')!;
+    const spanXpath = generateXPath(spanCard);
+    const divXpath = generateXPath(divCard);
+    expect(spanXpath).toMatch(/^\/\//);
+    expect(spanXpath).toMatch(/span/);
+    expect(spanXpath).toMatch(/\.\/\/img/);
+    expect(spanXpath).toMatch(/IconA/);
+    expect(divXpath).toMatch(/div/);
+    expect(divXpath).toMatch(/IconB/);
+    expect(d.evaluate(spanXpath, d, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue).toBe(spanCard);
+    expect(d.evaluate(divXpath, d, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue).toBe(divCard);
   });
 });

@@ -9,6 +9,8 @@ import { getDocument, getTagName, isElement } from '../utils/dom-utils';
 import { xpathMatchesElement } from './uniqueness-checker';
 
 const TEST_ID_ATTRS = ['data-testid', 'data-qa', 'data-cy', 'data-test-id'];
+/** Max length of text used in contains(); we try shortest unique prefix from these lengths. */
+const TEXT_PREFIX_LENGTHS = [20, 35, 50, 80];
 
 /** Escape value for use inside an XPath quoted attribute (single or double quotes). */
 function escapeXPathAttr(value: string): string {
@@ -45,6 +47,23 @@ function countByXPath(doc: Document, xpath: string): number {
   } catch {
     return 0;
   }
+}
+
+/**
+ * When the element (button, div, span, etc.) has no unique attributes but contains an img with unique alt,
+ * return //tag[.//img[@alt='...']] – short and stable. Works for any container: button, div, span, a, etc.
+ */
+function tryDescendantImgAlt(doc: Document, element: Element, tag: string): string | null {
+  const imgs = element.querySelectorAll('img[alt]');
+  for (const img of imgs) {
+    const alt = img.getAttribute('alt');
+    if (!alt || alt.includes("'")) continue;
+    const allImgsWithAlt = Array.from(doc.querySelectorAll('img')).filter((el) => el.getAttribute('alt') === alt);
+    if (allImgsWithAlt.length !== 1) continue;
+    const xpath = `//${tag}[.//img[@alt=${escapeXPathAttr(alt)}]]`;
+    if (countByXPath(doc, xpath) === 1 && xpathMatchesElement(doc, xpath, element)) return xpath;
+  }
+  return null;
 }
 
 export function generateXPath(element: Element): string {
@@ -91,14 +110,24 @@ export function generateXPath(element: Element): string {
     }
   }
 
-  // 4. Stable text (short) – uses normalize-space(.) so nested content is included (e.g. <button><div>Label</div></button>)
+  // 4. Descendant with unique stable attribute (e.g. img[@alt]) – very stable, short locator
+  const descendantAltXpath = tryDescendantImgAlt(doc, element, tag);
+  if (descendantAltXpath) return descendantAltXpath;
+
+  // 5. Stable text – use contains(normalize-space(.), 'prefix') so locator stays short; nested content included
   const text = element.textContent?.trim().replace(/\s+/g, ' ');
-  if (text && text.length > 0 && text.length <= 80 && !text.includes("'") && !text.includes('"')) {
-    const xpath = `//${tag}[normalize-space(.)=${escapeXPathAttr(text)}]`;
-    if (countByXPath(doc, xpath) === 1 && xpathMatchesElement(doc, xpath, element)) return xpath;
+  if (text && text.length > 0 && !text.includes("'") && !text.includes('"')) {
+    for (const len of TEXT_PREFIX_LENGTHS) {
+      if (len > text.length) break;
+      const prefix = text.slice(0, len);
+      const xpath = `//${tag}[contains(normalize-space(.), ${escapeXPathAttr(prefix)})]`;
+      if (countByXPath(doc, xpath) === 1 && xpathMatchesElement(doc, xpath, element)) return xpath;
+    }
+    const fullXpath = `//${tag}[contains(normalize-space(.), ${escapeXPathAttr(text)})]`;
+    if (countByXPath(doc, fullXpath) === 1 && xpathMatchesElement(doc, fullXpath, element)) return fullXpath;
   }
 
-  // 5. Role + accessible name (e.g. button with aria-label)
+  // 6. Role + accessible name (e.g. button with aria-label)
   const role = element.getAttribute('role') || (tag === 'button' ? 'button' : tag === 'a' ? 'link' : null);
   const ariaLabel = element.getAttribute('aria-label');
   if (role && ariaLabel) {
@@ -106,7 +135,7 @@ export function generateXPath(element: Element): string {
     if (countByXPath(doc, xpath) === 1 && xpathMatchesElement(doc, xpath, element)) return xpath;
   }
 
-  // 6. Class: prefer starts-with() for dynamic classes, exact when unique
+  // 7. Class: prefer starts-with() for dynamic classes, exact when unique
   const cls = element.getAttribute('class');
   if (cls) {
     const classes = cls.trim().split(/\s+/).filter(Boolean);
@@ -122,11 +151,11 @@ export function generateXPath(element: Element): string {
     }
   }
 
-  // 7. Fallback: path from closest ancestor with unique id (or test id), then down using tag + attributes (no position)
+  // 8. Fallback: path from closest ancestor with unique id (or test id), then down using tag + attributes (no position)
   const pathFromAnchor = buildPathFromStableAncestor(doc, element);
   if (pathFromAnchor && xpathMatchesElement(doc, pathFromAnchor, element)) return pathFromAnchor;
 
-  // 8. Short relative path using only tag names and predicates (no [n] position)
+  // 9. Short relative path using only tag names and predicates (no [n] position)
   const relativePath = buildShortRelativePath(doc, element);
   if (relativePath && xpathMatchesElement(doc, relativePath, element)) return relativePath;
 
@@ -180,7 +209,7 @@ function buildPathFromStableAncestor(doc: Document, element: Element): string | 
   return `${anchorXpath}//${segments.join('//')}`;
 }
 
-/** One segment from parent down to this child, without position index: tag or tag[@attr='...'] or tag[normalize-space(.)='...']. */
+/** One segment from parent down to this child, without position index; uses contains(.) for text to keep short. */
 function segmentToChild(child: Element): string | null {
   const tag = getTagName(child);
   const parent = child.parentElement;
@@ -198,7 +227,10 @@ function segmentToChild(child: Element): string | null {
   const name = child.getAttribute('name');
   if (name) return `${tag}[@name=${escapeXPathAttr(name)}]`;
   const text = child.textContent?.trim().replace(/\s+/g, ' ');
-  if (text && text.length <= 60 && !text.includes("'")) return `${tag}[normalize-space(.)=${escapeXPathAttr(text)}]`;
+  if (text && !text.includes("'")) {
+    const prefix = text.slice(0, TEXT_PREFIX_LENGTHS[0]);
+    return `${tag}[contains(normalize-space(.), ${escapeXPathAttr(prefix)})]`;
+  }
   const cls = child.getAttribute('class');
   if (cls) {
     const first = cls.trim().split(/\s+/)[0];
@@ -233,9 +265,10 @@ function buildShortRelativePath(_doc: Document, element: Element): string {
         const attr = current.getAttribute('data-testid') ? 'data-testid' : 'data-qa';
         segment = `*[@${attr}=${escapeXPathAttr(testId)}]`;
       } else {
-        const text = current.textContent?.trim().replace(/\s+/g, ' ').slice(0, 50);
-        if (text && !text.includes("'")) {
-          segment = `${tag}[normalize-space(.)=${escapeXPathAttr(text)}]`;
+        const fullText = current.textContent?.trim().replace(/\s+/g, ' ');
+        if (fullText && !fullText.includes("'")) {
+          const prefix = fullText.slice(0, TEXT_PREFIX_LENGTHS[0]);
+          segment = `${tag}[contains(normalize-space(.), ${escapeXPathAttr(prefix)})]`;
         } else {
           segment = tag;
         }
