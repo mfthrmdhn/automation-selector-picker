@@ -1,7 +1,7 @@
 /**
  * Supported locator / framework output formats.
  */
-export type LocatorFormat = 'xpath' | 'css' | 'playwright' | 'cypress' | 'selenium';
+export type LocatorFormat = 'xpath' | 'css' | 'playwright';
 
 /**
  * Result for a single locator type.
@@ -20,7 +20,5 @@ export interface ElementLocators {
   xpath: string;
   css: string;
   playwright: string;
-  cypress: string;
-  selenium: string;
   other: Record<string, string>;
 }

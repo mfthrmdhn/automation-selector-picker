@@ -8,8 +8,6 @@ import { generateXPath } from './xpath-generator';
 import { generateCSS } from './css-generator';
 import { analyzeAttributes } from './attribute-analyzer';
 import { getPlaywrightLocator } from '../adapters/playwright-adapter';
-import { getCypressLocator } from '../adapters/cypress-adapter';
-import { getSeleniumLocator } from '../adapters/selenium-adapter';
 
 export interface GetLocatorsOptions {
   /** Attribute name for test IDs (e.g. 'data-testid', 'data-qaid'). Defaults to 'data-testid'. */
@@ -37,8 +35,6 @@ export function getLocatorsForElement(
     xpath,
     css,
     playwright: getPlaywrightLocator(element, { xpath, css, attrs }),
-    cypress: getCypressLocator(element, { xpath, css, attrs }, testIdAttribute),
-    selenium: getSeleniumLocator(element, { xpath, css, attrs }),
     other,
   };
 }

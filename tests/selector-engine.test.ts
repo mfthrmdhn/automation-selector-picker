@@ -8,15 +8,13 @@ function doc(html: string): Document {
 }
 
 describe('selector-engine', () => {
-  it('returns xpath, css, playwright, cypress, selenium for an element', () => {
+  it('returns xpath, css, playwright for an element', () => {
     const d = doc('<button id="submit" data-testid="submit-btn">Submit</button>');
     const btn = d.querySelector('button')!;
     const locators = getLocatorsForElement(btn);
     expect(locators.xpath).toBeTruthy();
     expect(locators.css).toBeTruthy();
     expect(locators.playwright).toContain('getByTestId');
-    expect(locators.cypress).toContain('cy.get');
-    expect(locators.selenium).toContain('By.');
   });
 
   it('prefers getByRole when role and name exist', () => {

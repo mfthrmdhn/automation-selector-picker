@@ -100,8 +100,6 @@ export function createOverlay(root: HTMLDivElement): {
       container.appendChild(createLocatorRow('XPath', locators.xpath, 'picker-xpath'));
       container.appendChild(createLocatorRow('CSS', locators.css, 'picker-css'));
       container.appendChild(createLocatorRow('Playwright', locators.playwright, 'picker-playwright'));
-      container.appendChild(createLocatorRow('Cypress', locators.cypress, 'picker-cypress'));
-      container.appendChild(createLocatorRow('Selenium', locators.selenium, 'picker-selenium'));
       const otherEntries = Object.entries(locators.other);
       if (otherEntries.length > 0) {
         const otherText = otherEntries.map(([k, v]) => `${k}: ${v}`).join('\n');
