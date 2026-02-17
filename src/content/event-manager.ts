@@ -4,6 +4,7 @@
 
 import { updateHighlight, createHighlightElement, getHighlightStyles } from './highlighter';
 import { getLocatorsForElement } from '../core/selector-engine';
+import type { ScoredXPath } from '../types/locator.types';
 
 const ROOT_ID = 'selector-picker-root';
 
@@ -89,6 +90,70 @@ export function createOverlay(root: HTMLDivElement): {
     return row;
   }
 
+  function getScoreColor(score: number): string {
+    if (score >= 75) return '#22c55e';
+    if (score >= 50) return '#eab308';
+    return '#ef4444';
+  }
+
+  function createXPathCandidateRow(
+    candidate: ScoredXPath,
+    index: number
+  ): HTMLDivElement {
+    const row = document.createElement('div');
+    row.className = 'selector-picker-row selector-picker-xpath-row';
+
+    const header = document.createElement('div');
+    header.className = 'selector-picker-xpath-header';
+
+    const labelEl = document.createElement('label');
+    const labelText = index === 0 ? 'XPath' : `XPath (Alt ${index})`;
+    labelEl.textContent = labelText;
+    const rowId = `picker-xpath-${index}`;
+    labelEl.htmlFor = rowId;
+
+    const meta = document.createElement('span');
+    meta.className = 'selector-picker-xpath-meta';
+
+    const scoreBadge = document.createElement('span');
+    scoreBadge.className = 'selector-picker-score-badge';
+    scoreBadge.textContent = `${Math.round(candidate.score)}`;
+    scoreBadge.style.borderColor = getScoreColor(candidate.score);
+    scoreBadge.style.color = getScoreColor(candidate.score);
+
+    const strategyTag = document.createElement('span');
+    strategyTag.className = 'selector-picker-strategy-tag';
+    strategyTag.textContent = candidate.strategy;
+
+    meta.appendChild(scoreBadge);
+    meta.appendChild(strategyTag);
+    header.appendChild(labelEl);
+    header.appendChild(meta);
+
+    const pre = document.createElement('pre');
+    pre.id = rowId;
+    pre.textContent = candidate.xpath || '—';
+    pre.setAttribute('contenteditable', 'false');
+
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.textContent = 'Copy';
+    copyBtn.className = 'selector-picker-copy';
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(candidate.xpath || '').then(() => {
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => {
+          copyBtn.textContent = 'Copy';
+        }, 1500);
+      });
+    });
+
+    row.appendChild(header);
+    row.appendChild(pre);
+    row.appendChild(copyBtn);
+    return row;
+  }
+
   function showPanelForElement(element: Element) {
     chrome.storage.sync.get({ testIdAttribute: 'data-testid' }, (result) => {
       const locators = getLocatorsForElement(element, {
@@ -97,11 +162,60 @@ export function createOverlay(root: HTMLDivElement): {
       const container = panel.querySelector('.selector-picker-locators');
       if (!container) return;
       container.innerHTML = '';
-      container.appendChild(createLocatorRow('XPath', locators.xpath, 'picker-xpath'));
-      container.appendChild(createLocatorRow('CSS', locators.css, 'picker-css'));
+
+      function appendDivider() {
+        const hr = document.createElement('hr');
+        hr.className = 'selector-picker-divider';
+        container!.appendChild(hr);
+      }
+
       container.appendChild(createLocatorRow('Playwright', locators.playwright, 'picker-playwright'));
+
+      appendDivider();
+
+      // Primary XPath (always visible)
+      const xpathCandidates = locators.xpathCandidates.slice(0, 3);
+      if (xpathCandidates.length > 0) {
+        container.appendChild(createXPathCandidateRow(xpathCandidates[0], 0));
+      }
+
+      // Alternative XPaths in a collapsible section (collapsed by default)
+      if (xpathCandidates.length > 1) {
+        const altSection = document.createElement('div');
+        altSection.className = 'selector-picker-xpath-alts';
+
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'selector-picker-alts-toggle';
+        toggle.innerHTML = '<span class="selector-picker-alts-chevron">&#9654;</span> XPATH Alternatives <span class="selector-picker-alts-count">' + (xpathCandidates.length - 1) + '</span>';
+        toggle.setAttribute('aria-expanded', 'false');
+
+        const altContent = document.createElement('div');
+        altContent.className = 'selector-picker-alts-content';
+
+        for (let i = 1; i < xpathCandidates.length; i++) {
+          altContent.appendChild(createXPathCandidateRow(xpathCandidates[i], i));
+        }
+
+        toggle.addEventListener('click', () => {
+          const expanded = altContent.classList.toggle('selector-picker-alts-expanded');
+          toggle.setAttribute('aria-expanded', String(expanded));
+          const chevron = toggle.querySelector('.selector-picker-alts-chevron');
+          if (chevron) chevron.innerHTML = expanded ? '&#9660;' : '&#9654;';
+        });
+
+        altSection.appendChild(toggle);
+        altSection.appendChild(altContent);
+        container.appendChild(altSection);
+      }
+
+      appendDivider();
+
+      container.appendChild(createLocatorRow('CSS', locators.css, 'picker-css'));
+
       const otherEntries = Object.entries(locators.other);
       if (otherEntries.length > 0) {
+        appendDivider();
         const otherText = otherEntries.map(([k, v]) => `${k}: ${v}`).join('\n');
         container.appendChild(createLocatorRow('Other', otherText, 'picker-other'));
       }

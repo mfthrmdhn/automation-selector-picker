@@ -54,5 +54,19 @@ export function getHighlightStyles(rootId: string): string {
     .selector-picker-row pre { margin: 0; padding: 8px; background: #0f172a; border-radius: 6px; font-size: 11px; white-space: pre-wrap; word-break: break-all; overflow-x: auto; }
     .selector-picker-copy { margin-top: 4px; padding: 4px 10px; font-size: 11px; border: none; border-radius: 4px; background: #334155; color: #e2e8f0; cursor: pointer; }
     .selector-picker-copy:hover { background: #475569; }
+    .selector-picker-xpath-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .selector-picker-xpath-header label { margin-bottom: 0; }
+    .selector-picker-xpath-meta { display: flex; align-items: center; gap: 6px; }
+    .selector-picker-score-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; padding: 1px 6px; font-size: 11px; font-weight: 700; font-family: ui-monospace, monospace; border: 1.5px solid; border-radius: 4px; line-height: 1.4; }
+    .selector-picker-strategy-tag { display: inline-block; padding: 1px 6px; font-size: 10px; font-weight: 500; color: #94a3b8; background: #1e293b; border-radius: 3px; white-space: nowrap; }
+    .selector-picker-xpath-row + .selector-picker-xpath-row { margin-top: 0; padding-top: 10px; border-top: 1px dashed #334155; }
+    .selector-picker-divider { border: none; border-top: 1px solid #334155; margin: 12px 0; }
+    .selector-picker-xpath-alts { margin-bottom: 12px; }
+    .selector-picker-alts-toggle { display: flex; align-items: center; gap: 6px; width: 100%; padding: 6px 0; border: none; background: none; color: #94a3b8; font-size: 11px; font-weight: 600; font-family: system-ui, sans-serif; cursor: pointer; text-transform: uppercase; letter-spacing: 0.03em; }
+    .selector-picker-alts-toggle:hover { color: #e2e8f0; }
+    .selector-picker-alts-chevron { font-size: 8px; transition: transform 0.15s; display: inline-block; }
+    .selector-picker-alts-count { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 4px; font-size: 10px; font-weight: 700; color: #94a3b8; background: #1e293b; border-radius: 8px; }
+    .selector-picker-alts-content { overflow: hidden; max-height: 0; opacity: 0; transition: max-height 0.2s ease, opacity 0.15s ease, margin 0.2s ease; margin-top: 0; }
+    .selector-picker-alts-content.selector-picker-alts-expanded { max-height: 500px; opacity: 1; margin-top: 4px; }
   `;
 }
