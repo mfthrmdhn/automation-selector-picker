@@ -13,12 +13,17 @@ function getRoot(): HTMLDivElement | null {
 }
 
 let currentPickerApi: ReturnType<typeof createOverlay> | null = null;
+let cleanupListeners: (() => void) | null = null;
 
 function teardown(): void {
   const root = getRoot();
   if (!root) return;
   root.remove();
   currentPickerApi = null;
+  if (cleanupListeners) {
+    cleanupListeners();
+    cleanupListeners = null;
+  }
   document.removeEventListener('keydown', handleEscape, true);
 }
 
@@ -38,7 +43,7 @@ function enterPickerMode(): void {
   injectStyles(root);
   const api = createOverlay(root);
   currentPickerApi = api;
-  attachOverlayListeners(api.overlay, api.panel, api);
+  cleanupListeners = attachOverlayListeners(api.overlay, api.panel, api);
 
   document.body.appendChild(root);
   document.addEventListener('keydown', handleEscape, true);

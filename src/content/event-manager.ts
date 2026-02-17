@@ -243,23 +243,42 @@ export function injectStyles(root: HTMLDivElement): void {
 }
 
 export function attachOverlayListeners(
-  overlay: HTMLDivElement,
+  _overlay: HTMLDivElement,
   panel: HTMLDivElement,
   api: ReturnType<typeof createOverlay>
-): void {
-  overlay.addEventListener('mousemove', (e) => {
+): () => void {
+  // Use document-level capture listeners so native scroll is never blocked.
+  // The overlay is pointer-events: none; all interactions go through the document.
+  document.documentElement.classList.add('selector-picker-active');
+
+  const onMouseMove = (e: MouseEvent) => {
+    const target = e.target as Element | null;
+    if (target?.closest(`#${ROOT_ID} .selector-picker-panel`)) return;
     api.onMove(e.clientX, e.clientY);
-  });
-  overlay.addEventListener('click', (e) => {
+  };
+
+  const onClick = (e: MouseEvent) => {
+    const target = e.target as Element | null;
+    if (target?.closest(`#${ROOT_ID}`)) return;
     e.preventDefault();
     e.stopPropagation();
     const el = api.onOverlayClick();
     if (el) api.showPanelForElement(el);
-  });
+  };
+
+  document.addEventListener('mousemove', onMouseMove, true);
+  document.addEventListener('click', onClick, true);
+
   panel.querySelector('.selector-picker-close')?.addEventListener('click', () => api.hidePanel());
   panel.querySelector('.selector-picker-pick-another')?.addEventListener('click', () => {
     api.hidePanel();
   });
+
+  return () => {
+    document.removeEventListener('mousemove', onMouseMove, true);
+    document.removeEventListener('click', onClick, true);
+    document.documentElement.classList.remove('selector-picker-active');
+  };
 }
 
 export function getRootId(): string {
