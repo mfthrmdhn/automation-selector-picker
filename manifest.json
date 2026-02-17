@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Element Locator Picker",
-  "version": "1.0.0",
-  "description": "Pick elements and get XPath, CSS, Playwright, Cypress, and Selenium locators. Activate with keyboard shortcut.",
+  "name": "Web Automation Selector Picker",
+  "version": "0.1.0",
+  "description": "Pick elements and get XPath, CSS, Playwright locators. Activate with keyboard shortcut.",
   "permissions": ["activeTab", "scripting", "storage"],
   "background": { "service_worker": "background.js" },
   "action": { "default_popup": "popup.html", "default_title": "Web Automation Selector Picker" },
