@@ -6,7 +6,12 @@
   "author": "Miftah Ramadhan",
   "scripts": {
     "dev": "vite build --watch",
-    "build": "tsc && vite build && node scripts/copy-manifest.cjs public",
+    "dev:firefox": "cross-env BROWSER=firefox vite build --watch",
+    "build": "npm run build:chrome",
+    "build:chrome": "tsc && vite build && node scripts/copy-manifest.cjs chrome public",
+    "build:firefox": "tsc && vite build && node scripts/copy-manifest.cjs firefox public",
+    "build:dist:chrome": "tsc && cross-env VITE_OUT_DIR=dist vite build && node scripts/copy-manifest.cjs chrome dist",
+    "build:dist:firefox": "tsc && cross-env VITE_OUT_DIR=dist vite build && node scripts/copy-manifest.cjs firefox dist",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"

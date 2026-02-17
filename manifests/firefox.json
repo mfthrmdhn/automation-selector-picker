@@ -1,11 +1,20 @@
 {
   "manifest_version": 3,
-  "name": "Web Automation Selector Picker",
+  "name": "Automation Selector Picker",
   "version": "0.1.0",
   "description": "Pick elements and get XPath, CSS, Playwright locators. Activate with keyboard shortcut.",
   "permissions": ["activeTab", "scripting", "storage"],
-  "background": { "service_worker": "background.js" },
+  "background": { "scripts": ["background.js"] },
   "action": { "default_popup": "popup.html", "default_title": "Web Automation Selector Picker" },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "selector-picker@miftahramadhan.dev",
+      "strict_min_version": "142.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  },
   "commands": {
     "toggle-picker": {
       "suggested_key": { "default": "Ctrl+Shift+L", "mac": "Command+Shift+L" },

@@ -25,8 +25,10 @@ export function createOverlay(root: HTMLDivElement): {
 
   const overlay = document.createElement('div');
   overlay.className = 'selector-picker-overlay';
-  overlay.innerHTML =
-    '<span class="selector-picker-hint">Click an element to get locators · Esc to close panel · Shortcut to exit</span>';
+  const hint = document.createElement('span');
+  hint.className = 'selector-picker-hint';
+  hint.textContent = 'Click an element to get locators \u00b7 Esc to close panel \u00b7 Shortcut to exit';
+  overlay.appendChild(hint);
 
   const highlight = createHighlightElement();
   root.appendChild(overlay);
@@ -34,16 +36,31 @@ export function createOverlay(root: HTMLDivElement): {
 
   const panel = document.createElement('div');
   panel.className = 'selector-picker-panel';
-  panel.innerHTML = `
-    <div class="selector-picker-panel-header">
-      <h3>Element locators</h3>
-      <div class="selector-picker-panel-actions">
-        <button type="button" class="selector-picker-btn selector-picker-pick-another">Pick another</button>
-        <button type="button" class="selector-picker-btn selector-picker-close">Close</button>
-      </div>
-    </div>
-    <div class="selector-picker-locators"></div>
-  `;
+
+  const header = document.createElement('div');
+  header.className = 'selector-picker-panel-header';
+  const h3 = document.createElement('h3');
+  h3.textContent = 'Element locators';
+  const actions = document.createElement('div');
+  actions.className = 'selector-picker-panel-actions';
+  const pickAnotherBtn = document.createElement('button');
+  pickAnotherBtn.type = 'button';
+  pickAnotherBtn.className = 'selector-picker-btn selector-picker-pick-another';
+  pickAnotherBtn.textContent = 'Pick another';
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'selector-picker-btn selector-picker-close';
+  closeBtn.textContent = 'Close';
+  actions.appendChild(pickAnotherBtn);
+  actions.appendChild(closeBtn);
+  header.appendChild(h3);
+  header.appendChild(actions);
+
+  const locatorsDiv = document.createElement('div');
+  locatorsDiv.className = 'selector-picker-locators';
+
+  panel.appendChild(header);
+  panel.appendChild(locatorsDiv);
   root.appendChild(panel);
 
   function setCurrentElement(el: Element | null) {
@@ -161,7 +178,7 @@ export function createOverlay(root: HTMLDivElement): {
       });
       const container = panel.querySelector('.selector-picker-locators');
       if (!container) return;
-      container.innerHTML = '';
+      while (container.firstChild) container.firstChild.remove();
 
       function appendDivider() {
         const hr = document.createElement('hr');
@@ -187,7 +204,16 @@ export function createOverlay(root: HTMLDivElement): {
         const toggle = document.createElement('button');
         toggle.type = 'button';
         toggle.className = 'selector-picker-alts-toggle';
-        toggle.innerHTML = '<span class="selector-picker-alts-chevron">&#9654;</span> XPATH Alternatives <span class="selector-picker-alts-count">' + (xpathCandidates.length - 1) + '</span>';
+        const chevron = document.createElement('span');
+        chevron.className = 'selector-picker-alts-chevron';
+        chevron.textContent = '\u25b6';
+        const toggleLabel = document.createTextNode(' XPATH Alternatives ');
+        const altCount = document.createElement('span');
+        altCount.className = 'selector-picker-alts-count';
+        altCount.textContent = String(xpathCandidates.length - 1);
+        toggle.appendChild(chevron);
+        toggle.appendChild(toggleLabel);
+        toggle.appendChild(altCount);
         toggle.setAttribute('aria-expanded', 'false');
 
         const altContent = document.createElement('div');
@@ -200,8 +226,7 @@ export function createOverlay(root: HTMLDivElement): {
         toggle.addEventListener('click', () => {
           const expanded = altContent.classList.toggle('selector-picker-alts-expanded');
           toggle.setAttribute('aria-expanded', String(expanded));
-          const chevron = toggle.querySelector('.selector-picker-alts-chevron');
-          if (chevron) chevron.innerHTML = expanded ? '&#9660;' : '&#9654;';
+          chevron.textContent = expanded ? '\u25bc' : '\u25b6';
         });
 
         altSection.appendChild(toggle);
