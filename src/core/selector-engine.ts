@@ -4,7 +4,7 @@
  */
 
 import type { ElementLocators } from '../types/locator.types';
-import { generateXPath } from './xpath-generator';
+import { generateRankedXPaths } from './xpath-generator';
 import { generateCSS } from './css-generator';
 import { analyzeAttributes } from './attribute-analyzer';
 import { getPlaywrightLocator } from '../adapters/playwright-adapter';
@@ -19,7 +19,8 @@ export function getLocatorsForElement(
   options: GetLocatorsOptions = {}
 ): ElementLocators {
   const testIdAttribute = options.testIdAttribute ?? 'data-testid';
-  const xpath = generateXPath(element);
+  const xpathCandidates = generateRankedXPaths(element);
+  const xpath = xpathCandidates[0]?.xpath ?? '//*';
   const css = generateCSS(element);
   const attrs = analyzeAttributes(element, testIdAttribute);
 
@@ -33,6 +34,7 @@ export function getLocatorsForElement(
   return {
     element,
     xpath,
+    xpathCandidates,
     css,
     playwright: getPlaywrightLocator(element, { xpath, css, attrs }),
     other,
