@@ -41,6 +41,34 @@ export interface ScoredXPath {
 }
 
 /**
+ * Breakdown of individual scoring factors for a Playwright candidate (each 0-100).
+ */
+export interface PlaywrightScoreBreakdown {
+  /** How resilient the strategy is to DOM changes. */
+  stability: number;
+  /** Shorter locator strings score higher. */
+  brevity: number;
+  /** User-facing built-ins score higher than structural selectors. */
+  readability: number;
+  /** Matches exactly 1 element = 100; more matches = lower. */
+  uniqueness: number;
+}
+
+/**
+ * A single Playwright locator candidate with its weighted score and breakdown.
+ */
+export interface ScoredPlaywright {
+  /** The Playwright locator expression. */
+  locator: string;
+  /** Human-readable strategy label, e.g. "getByRole", "getByTestId". */
+  strategy: string;
+  /** Weighted total score (0-100). */
+  score: number;
+  /** Per-factor score breakdown. */
+  breakdown: PlaywrightScoreBreakdown;
+}
+
+/**
  * All locators for a given element.
  */
 export interface ElementLocators {
@@ -50,6 +78,9 @@ export interface ElementLocators {
   /** All XPath candidates, sorted by score descending (best first). */
   xpathCandidates: ScoredXPath[];
   css: string;
+  /** Best-scored Playwright locator (backward compatible). */
   playwright: string;
+  /** All Playwright candidates, sorted by score descending (best first). */
+  playwrightCandidates: ScoredPlaywright[];
   other: Record<string, string>;
 }

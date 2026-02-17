@@ -14,7 +14,9 @@ describe('selector-engine', () => {
     const locators = getLocatorsForElement(btn);
     expect(locators.xpath).toBeTruthy();
     expect(locators.css).toBeTruthy();
-    expect(locators.playwright).toContain('getByTestId');
+    // getByRole with name is preferred over getByTestId per Playwright best practices
+    expect(locators.playwright).toMatch(/getByRole|getByTestId/);
+    expect(locators.playwrightCandidates.length).toBeGreaterThan(0);
   });
 
   it('prefers getByRole when role and name exist', () => {

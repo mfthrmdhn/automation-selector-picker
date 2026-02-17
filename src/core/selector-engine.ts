@@ -7,7 +7,7 @@ import type { ElementLocators } from '../types/locator.types';
 import { generateRankedXPaths } from './xpath-generator';
 import { generateCSS } from './css-generator';
 import { analyzeAttributes } from './attribute-analyzer';
-import { getPlaywrightLocator } from '../adapters/playwright-adapter';
+import { generateRankedPlaywright } from '../adapters/playwright-adapter';
 
 export interface GetLocatorsOptions {
   /** Attribute name for test IDs (e.g. 'data-testid', 'data-qaid'). Defaults to 'data-testid'. */
@@ -31,12 +31,17 @@ export function getLocatorsForElement(
     if (element.getAttribute('title')) other['title'] = attrs.accessibleName;
   }
 
+  const context = { xpath, css, attrs, testIdAttribute };
+  const playwrightCandidates = generateRankedPlaywright(element, context);
+  const playwright = playwrightCandidates[0]?.locator ?? `page.locator('${css}')`;
+
   return {
     element,
     xpath,
     xpathCandidates,
     css,
-    playwright: getPlaywrightLocator(element, { xpath, css, attrs }),
+    playwright,
+    playwrightCandidates,
     other,
   };
 }

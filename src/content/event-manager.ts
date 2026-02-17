@@ -4,7 +4,7 @@
 
 import { updateHighlight, createHighlightElement, getHighlightStyles } from './highlighter';
 import { getLocatorsForElement } from '../core/selector-engine';
-import type { ScoredXPath } from '../types/locator.types';
+import type { ScoredXPath, ScoredPlaywright } from '../types/locator.types';
 
 const ROOT_ID = 'selector-picker-root';
 
@@ -171,6 +171,64 @@ export function createOverlay(root: HTMLDivElement): {
     return row;
   }
 
+  function createPlaywrightCandidateRow(
+    candidate: ScoredPlaywright,
+    index: number
+  ): HTMLDivElement {
+    const row = document.createElement('div');
+    row.className = 'selector-picker-row selector-picker-xpath-row';
+
+    const header = document.createElement('div');
+    header.className = 'selector-picker-xpath-header';
+
+    const labelEl = document.createElement('label');
+    const labelText = index === 0 ? 'Playwright' : `Playwright (Alt ${index})`;
+    labelEl.textContent = labelText;
+    const rowId = `picker-pw-${index}`;
+    labelEl.htmlFor = rowId;
+
+    const meta = document.createElement('span');
+    meta.className = 'selector-picker-xpath-meta';
+
+    const scoreBadge = document.createElement('span');
+    scoreBadge.className = 'selector-picker-score-badge';
+    scoreBadge.textContent = `${Math.round(candidate.score)}`;
+    scoreBadge.style.borderColor = getScoreColor(candidate.score);
+    scoreBadge.style.color = getScoreColor(candidate.score);
+
+    const strategyTag = document.createElement('span');
+    strategyTag.className = 'selector-picker-strategy-tag';
+    strategyTag.textContent = candidate.strategy;
+
+    meta.appendChild(scoreBadge);
+    meta.appendChild(strategyTag);
+    header.appendChild(labelEl);
+    header.appendChild(meta);
+
+    const pre = document.createElement('pre');
+    pre.id = rowId;
+    pre.textContent = candidate.locator || '\u2014';
+    pre.setAttribute('contenteditable', 'false');
+
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.textContent = 'Copy';
+    copyBtn.className = 'selector-picker-copy';
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(candidate.locator || '').then(() => {
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => {
+          copyBtn.textContent = 'Copy';
+        }, 1500);
+      });
+    });
+
+    row.appendChild(header);
+    row.appendChild(pre);
+    row.appendChild(copyBtn);
+    return row;
+  }
+
   function showPanelForElement(element: Element) {
     chrome.storage.sync.get({ testIdAttribute: 'data-testid' }, (result) => {
       const locators = getLocatorsForElement(element, {
@@ -186,7 +244,49 @@ export function createOverlay(root: HTMLDivElement): {
         container!.appendChild(hr);
       }
 
-      container.appendChild(createLocatorRow('Playwright', locators.playwright, 'picker-playwright'));
+      // Primary Playwright (always visible)
+      const pwCandidates = locators.playwrightCandidates.slice(0, 3);
+      if (pwCandidates.length > 0) {
+        container.appendChild(createPlaywrightCandidateRow(pwCandidates[0], 0));
+      }
+
+      // Alternative Playwright locators in a collapsible section
+      if (pwCandidates.length > 1) {
+        const pwAltSection = document.createElement('div');
+        pwAltSection.className = 'selector-picker-xpath-alts';
+
+        const pwToggle = document.createElement('button');
+        pwToggle.type = 'button';
+        pwToggle.className = 'selector-picker-alts-toggle';
+        const pwChevron = document.createElement('span');
+        pwChevron.className = 'selector-picker-alts-chevron';
+        pwChevron.textContent = '\u25b6';
+        const pwToggleLabel = document.createTextNode(' Playwright Alternatives ');
+        const pwAltCount = document.createElement('span');
+        pwAltCount.className = 'selector-picker-alts-count';
+        pwAltCount.textContent = String(pwCandidates.length - 1);
+        pwToggle.appendChild(pwChevron);
+        pwToggle.appendChild(pwToggleLabel);
+        pwToggle.appendChild(pwAltCount);
+        pwToggle.setAttribute('aria-expanded', 'false');
+
+        const pwAltContent = document.createElement('div');
+        pwAltContent.className = 'selector-picker-alts-content';
+
+        for (let i = 1; i < pwCandidates.length; i++) {
+          pwAltContent.appendChild(createPlaywrightCandidateRow(pwCandidates[i], i));
+        }
+
+        pwToggle.addEventListener('click', () => {
+          const expanded = pwAltContent.classList.toggle('selector-picker-alts-expanded');
+          pwToggle.setAttribute('aria-expanded', String(expanded));
+          pwChevron.textContent = expanded ? '\u25bc' : '\u25b6';
+        });
+
+        pwAltSection.appendChild(pwToggle);
+        pwAltSection.appendChild(pwAltContent);
+        container.appendChild(pwAltSection);
+      }
 
       appendDivider();
 
