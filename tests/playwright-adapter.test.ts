@@ -147,6 +147,58 @@ describe('generateRankedPlaywright', () => {
   });
 });
 
+describe('positional locators (.first / .last / .nth)', () => {
+  it('generates .first() when target is the first of multiple matches', () => {
+    const d = setup('<div><button>OK</button><button>OK</button></div>');
+    const btns = d.querySelectorAll('button');
+    const ranked = generateRankedPlaywright(btns[0], contextFor(btns[0]));
+    const strategies = ranked.map((r) => r.strategy);
+    expect(strategies).toContain('first');
+    const first = ranked.find((r) => r.strategy === 'first');
+    expect(first?.locator).toContain('.first()');
+  });
+
+  it('generates .last() when target is the last of multiple matches', () => {
+    const d = setup('<div><button>OK</button><button>OK</button></div>');
+    const btns = d.querySelectorAll('button');
+    const ranked = generateRankedPlaywright(btns[1], contextFor(btns[1]));
+    const strategies = ranked.map((r) => r.strategy);
+    expect(strategies).toContain('last');
+    const last = ranked.find((r) => r.strategy === 'last');
+    expect(last?.locator).toContain('.last()');
+  });
+
+  it('generates .nth(n) for non-unique locators', () => {
+    const d = setup('<div><button>OK</button><button>OK</button><button>OK</button></div>');
+    const btns = d.querySelectorAll('button');
+    const ranked = generateRankedPlaywright(btns[1], contextFor(btns[1]));
+    const strategies = ranked.map((r) => r.strategy);
+    expect(strategies).toContain('nth');
+    const nth = ranked.find((r) => r.strategy === 'nth');
+    expect(nth?.locator).toContain('.nth(1)');
+  });
+
+  it('does not generate positional locators for unique elements', () => {
+    const d = setup('<button data-testid="unique">Save</button>');
+    const btn = d.querySelector('button')!;
+    const ranked = generateRankedPlaywright(btn, contextFor(btn));
+    const strategies = ranked.map((r) => r.strategy);
+    expect(strategies).not.toContain('first');
+    expect(strategies).not.toContain('last');
+    expect(strategies).not.toContain('nth');
+  });
+
+  it('.nth() locators count as unique (matchCount = 1)', () => {
+    const d = setup('<div><button>OK</button><button>OK</button></div>');
+    const btns = d.querySelectorAll('button');
+    const ranked = generateRankedPlaywright(btns[0], contextFor(btns[0]));
+    const first = ranked.find((r) => r.strategy === 'first');
+    const nth = ranked.find((r) => r.strategy === 'nth');
+    if (first) expect(first.breakdown.uniqueness).toBe(100);
+    if (nth) expect(nth.breakdown.uniqueness).toBe(100);
+  });
+});
+
 describe('getPlaywrightLocator (backward compat)', () => {
   it('returns a string matching the best candidate', () => {
     const d = setup('<button>Click me</button>');

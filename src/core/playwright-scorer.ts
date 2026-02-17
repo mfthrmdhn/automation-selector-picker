@@ -27,11 +27,14 @@ const STABILITY_SCORES: Record<string, number> = {
   'getByText': 85,
   'getByAltText': 80,
   'getByTitle': 75,
-  'getByTestId': 70,
-  'chained': 65,
-  'filter': 60,
-  'css-locator': 30,
-  'xpath-locator': 10,
+  'getByTestId': 80,
+  'chained': 75,
+  'filter': 75,
+  'first': 45,
+  'last': 45,
+  'nth': 40,
+  'css-locator': 10,
+  'xpath-locator': 20,
 };
 
 const DEFAULT_STABILITY = 10;
@@ -51,7 +54,10 @@ const READABILITY_SCORES: Record<string, number> = {
   'getByTestId': 90,
   'chained': 75,
   'filter': 75,
-  'css-locator': 40,
+  'first': 70,
+  'last': 70,
+  'nth': 60,
+  'css-locator': 10,
   'xpath-locator': 10,
 };
 

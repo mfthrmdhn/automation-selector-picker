@@ -182,10 +182,19 @@ export function createOverlay(root: HTMLDivElement): {
     header.className = 'selector-picker-xpath-header';
 
     const labelEl = document.createElement('label');
-    const labelText = index === 0 ? 'Playwright' : `Playwright (Alt ${index})`;
-    labelEl.textContent = labelText;
     const rowId = `picker-pw-${index}`;
     labelEl.htmlFor = rowId;
+
+    if (index === 0) {
+      labelEl.textContent = 'Playwright';
+      const uniqueBadge = document.createElement('span');
+      uniqueBadge.className = 'selector-picker-unique-badge';
+      uniqueBadge.textContent = 'exact match';
+      labelEl.appendChild(document.createTextNode(' '));
+      labelEl.appendChild(uniqueBadge);
+    } else {
+      labelEl.textContent = `Playwright (Alt ${index})`;
+    }
 
     const meta = document.createElement('span');
     meta.className = 'selector-picker-xpath-meta';
@@ -202,6 +211,15 @@ export function createOverlay(root: HTMLDivElement): {
 
     meta.appendChild(scoreBadge);
     meta.appendChild(strategyTag);
+
+    // Show match count hint for alternatives that may match multiple elements
+    if (index > 0 && candidate.breakdown.uniqueness < 100) {
+      const multiHint = document.createElement('span');
+      multiHint.className = 'selector-picker-multi-hint';
+      multiHint.textContent = 'may match multiple';
+      meta.appendChild(multiHint);
+    }
+
     header.appendChild(labelEl);
     header.appendChild(meta);
 
@@ -261,7 +279,7 @@ export function createOverlay(root: HTMLDivElement): {
         const pwChevron = document.createElement('span');
         pwChevron.className = 'selector-picker-alts-chevron';
         pwChevron.textContent = '\u25b6';
-        const pwToggleLabel = document.createTextNode(' Playwright Alternatives ');
+        const pwToggleLabel = document.createTextNode('PW Alt (May return multiple elements)');
         const pwAltCount = document.createElement('span');
         pwAltCount.className = 'selector-picker-alts-count';
         pwAltCount.textContent = String(pwCandidates.length - 1);

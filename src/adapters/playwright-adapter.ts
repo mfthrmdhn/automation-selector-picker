@@ -15,14 +15,17 @@
  *  9. chained locator           – page.locator('form').getByRole('button', { name: 'Submit' })
  * 10. filter locator            – page.getByRole('listitem').filter({ hasText: 'Product' })
  * 11. page.locator(css)         – CSS fallback
- * 12. page.locator(`xpath=...`) – XPath fallback (last resort)
+ * 12. page.locator('//...') – XPath fallback (last resort)
+ *
+ * Additionally, for non-unique base locators:
+ * - .first() / .last() / .nth(n) – positional narrowing
  *
  * All candidates are collected, scored, and returned ranked by quality.
  */
 
 import type { AttributeAnalysis } from '../core/attribute-analyzer';
 import type { ScoredPlaywright } from '../types/locator.types';
-import { escapeSingleQuoted, escapeBackticks } from '../utils/string-utils';
+import { escapeSingleQuoted } from '../utils/string-utils';
 import { scorePlaywright } from '../core/playwright-scorer';
 
 export interface LocatorContext {
@@ -53,18 +56,16 @@ const SEMANTIC_ANCESTORS = [
 // ---------------------------------------------------------------------------
 
 /**
- * Count how many elements match a Playwright locator in the document.
- * Uses simple heuristics to evaluate without the full verifier to avoid
- * circular deps and keep it fast.
+ * Resolve a Playwright locator string to the set of matching DOM elements.
+ * Uses simple heuristics to avoid circular deps with the full verifier.
  */
-function countMatches(locator: string, element: Element): number {
-  const doc = element.ownerDocument;
+function getMatchedElements(locator: string, refElement: Element): Element[] {
+  const doc = refElement.ownerDocument;
   try {
     // getByTestId → attribute selector
     let m = locator.match(/^page\.getByTestId\('(.+?)'\)$/);
     if (m) {
-      const attr = element.closest('[data-testid]') ? 'data-testid' : 'data-testid';
-      return doc.querySelectorAll(`[${attr}="${m[1]}"]`).length;
+      return Array.from(doc.querySelectorAll(`[data-testid="${m[1]}"]`));
     }
 
     // getByRole with name
@@ -74,72 +75,93 @@ function countMatches(locator: string, element: Element): number {
       const byAttr = doc.querySelectorAll(`[role="${role}"]`);
       const byTag = getImplicitRoleElements(doc, role);
       const all = [...Array.from(byAttr), ...byTag.filter((el) => !el.hasAttribute('role'))];
-      return all.filter((el) => getAccessibleName(el).includes(name)).length;
+      return all.filter((el) => getAccessibleName(el).includes(name));
     }
 
     // getByRole without name
     m = locator.match(/^page\.getByRole\('(.+?)'\)$/);
     if (m) {
-      const byAttr = doc.querySelectorAll(`[role="${m[1]}"]`);
+      const byAttr = Array.from(doc.querySelectorAll(`[role="${m[1]}"]`));
       const byTag = getImplicitRoleElements(doc, m[1]);
-      const all = new Set([...Array.from(byAttr), ...byTag]);
-      return all.size;
+      return [...new Set([...byAttr, ...byTag])];
     }
 
     // getByLabel
     m = locator.match(/^page\.getByLabel\('(.+?)'\)$/);
     if (m) {
-      let count = 0;
+      const results: Element[] = [];
       doc.querySelectorAll('label').forEach((label) => {
         const lt = (label.textContent ?? '').trim();
         if (lt.includes(m![1])) {
           const forId = label.getAttribute('for');
-          if (forId && doc.getElementById(forId)) count++;
-          else if (label.querySelector('input, select, textarea')) count++;
+          if (forId) {
+            const target = doc.getElementById(forId);
+            if (target) results.push(target);
+          } else {
+            const inner = label.querySelector('input, select, textarea');
+            if (inner) results.push(inner);
+          }
         }
       });
-      return count || doc.querySelectorAll(`[aria-label="${m[1]}"]`).length;
+      if (results.length) return results;
+      return Array.from(doc.querySelectorAll(`[aria-label="${m[1]}"]`));
     }
 
     // getByPlaceholder
     m = locator.match(/^page\.getByPlaceholder\('(.+?)'\)$/);
-    if (m) return doc.querySelectorAll(`[placeholder="${m[1]}"]`).length;
+    if (m) return Array.from(doc.querySelectorAll(`[placeholder="${m[1]}"]`));
 
     // getByText
     m = locator.match(/^page\.getByText\('(.+?)'\)$/);
     if (m) {
       const text = m[1];
-      let count = 0;
+      const results: Element[] = [];
       doc.querySelectorAll('*').forEach((el) => {
         const direct = Array.from(el.childNodes)
           .filter((n) => n.nodeType === Node.TEXT_NODE)
           .map((n) => n.textContent ?? '')
           .join('')
           .trim();
-        if (direct && direct.includes(text)) count++;
+        if (direct && direct.includes(text)) results.push(el);
       });
-      return count;
+      return results;
     }
 
     // getByAltText
     m = locator.match(/^page\.getByAltText\('(.+?)'\)$/);
-    if (m) return doc.querySelectorAll(`[alt="${m[1]}"]`).length;
+    if (m) return Array.from(doc.querySelectorAll(`[alt="${m[1]}"]`));
 
     // getByTitle
     m = locator.match(/^page\.getByTitle\('(.+?)'\)$/);
-    if (m) return doc.querySelectorAll(`[title="${m[1]}"]`).length;
+    if (m) return Array.from(doc.querySelectorAll(`[title="${m[1]}"]`));
 
-    // page.locator(css) – not xpath
+    // page.locator(css)
     m = locator.match(/^page\.locator\('(.+?)'\)$/);
-    if (m && !m[1].startsWith('xpath=')) {
-      return doc.querySelectorAll(m[1]).length;
+    if (m && !m[1].startsWith('//')) {
+      return Array.from(doc.querySelectorAll(m[1]));
     }
 
-    // For chained/filter/xpath, assume 1 (scoring will still differentiate)
-    return 1;
+    // For chained/filter/xpath, can't easily resolve – return [refElement]
+    return [refElement];
   } catch {
-    return 0;
+    return [];
   }
+}
+
+/**
+ * Count how many elements match a Playwright locator in the document.
+ */
+function countMatches(locator: string, element: Element): number {
+  return getMatchedElements(locator, element).length;
+}
+
+/**
+ * Find the 0-based index of `target` among the elements matching `locator`.
+ * Returns -1 if the target is not found in the match set.
+ */
+function findMatchIndex(locator: string, target: Element): number {
+  const matched = getMatchedElements(locator, target);
+  return matched.indexOf(target);
 }
 
 // Implicit role helpers (lightweight version)
@@ -255,7 +277,7 @@ function collectPlaywrightCandidates(
 
   // 12. XPath fallback
   if (xpath) {
-    push(`page.locator(\`xpath=${escapeBackticks(xpath)}\`)`, 'xpath-locator');
+    push(`page.locator('${xpath.replace(/'/g, "\\'")}')`, 'xpath-locator');
   }
 
   return candidates;
@@ -377,7 +399,11 @@ export function generateRankedPlaywright(
 ): ScoredPlaywright[] {
   const candidates = collectPlaywrightCandidates(element, context);
 
-  const scored = candidates.map((c) => {
+  // Derive .nth() / .first() / .last() variants from non-unique candidates
+  const nthCandidates = deriveNthCandidates(candidates, element);
+  const allCandidates = [...candidates, ...nthCandidates];
+
+  const scored = allCandidates.map((c) => {
     const matchCount = countMatches(c.locator, element);
     return scorePlaywright(c.locator, c.strategy, matchCount);
   });
@@ -396,6 +422,53 @@ export function generateRankedPlaywright(
 }
 
 /**
+ * For non-unique base locators, derive .first() / .last() / .nth(n) variants
+ * so that the target element can be pinpointed by position.
+ */
+function deriveNthCandidates(
+  candidates: PlaywrightCandidate[],
+  target: Element,
+): PlaywrightCandidate[] {
+  const derived: PlaywrightCandidate[] = [];
+  const seen = new Set<string>();
+
+  for (const c of candidates) {
+    const matchCount = countMatches(c.locator, target);
+    if (matchCount <= 1) continue;
+
+    const idx = findMatchIndex(c.locator, target);
+    if (idx < 0) continue;
+
+    // .first()
+    if (idx === 0) {
+      const loc = `${c.locator}.first()`;
+      if (!seen.has(loc)) {
+        seen.add(loc);
+        derived.push({ locator: loc, strategy: 'first' });
+      }
+    }
+
+    // .last()
+    if (idx === matchCount - 1) {
+      const loc = `${c.locator}.last()`;
+      if (!seen.has(loc)) {
+        seen.add(loc);
+        derived.push({ locator: loc, strategy: 'last' });
+      }
+    }
+
+    // .nth(n) – always add (covers first/last as well as middle positions)
+    const nthLoc = `${c.locator}.nth(${idx})`;
+    if (!seen.has(nthLoc)) {
+      seen.add(nthLoc);
+      derived.push({ locator: nthLoc, strategy: 'nth' });
+    }
+  }
+
+  return derived;
+}
+
+/**
  * Backward-compatible wrapper: returns the best Playwright locator string.
  */
 export function getPlaywrightLocator(
@@ -403,5 +476,6 @@ export function getPlaywrightLocator(
   context: LocatorContext,
 ): string {
   const ranked = generateRankedPlaywright(element, context);
-  return ranked[0]?.locator ?? `page.locator(\`xpath=${escapeBackticks(context.xpath)}\`)`;
+  return ranked[0]?.locator ?? `page.locator('${context.xpath.replace(/'/g, "\\'")}')`;
+
 }

@@ -31,16 +31,25 @@ describe('playwright-scorer', () => {
     expect(calcStability('getByLabel')).toBe(95);
   });
 
-  it('calcStability returns 70 for getByTestId', () => {
-    expect(calcStability('getByTestId')).toBe(70);
+  it('calcStability returns 80 for getByTestId', () => {
+    expect(calcStability('getByTestId')).toBe(80);
   });
 
-  it('calcStability returns 30 for css-locator', () => {
-    expect(calcStability('css-locator')).toBe(30);
+  it('calcStability returns 10 for css-locator', () => {
+    expect(calcStability('css-locator')).toBe(10);
   });
 
-  it('calcStability returns 10 for xpath-locator', () => {
-    expect(calcStability('xpath-locator')).toBe(10);
+  it('calcStability returns 20 for xpath-locator', () => {
+    expect(calcStability('xpath-locator')).toBe(20);
+  });
+
+  it('calcStability returns 45 for first/last', () => {
+    expect(calcStability('first')).toBe(45);
+    expect(calcStability('last')).toBe(45);
+  });
+
+  it('calcStability returns 40 for nth', () => {
+    expect(calcStability('nth')).toBe(40);
   });
 
   it('calcStability returns default for unknown strategy', () => {
@@ -62,8 +71,17 @@ describe('playwright-scorer', () => {
     expect(calcReadability('filter')).toBe(75);
   });
 
-  it('calcReadability returns 40 for css-locator', () => {
-    expect(calcReadability('css-locator')).toBe(40);
+  it('calcReadability returns 70 for first/last', () => {
+    expect(calcReadability('first')).toBe(70);
+    expect(calcReadability('last')).toBe(70);
+  });
+
+  it('calcReadability returns 60 for nth', () => {
+    expect(calcReadability('nth')).toBe(60);
+  });
+
+  it('calcReadability returns 10 for css-locator', () => {
+    expect(calcReadability('css-locator')).toBe(10);
   });
 
   it('calcReadability returns 10 for xpath-locator', () => {

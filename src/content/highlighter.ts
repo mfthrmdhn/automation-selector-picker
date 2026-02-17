@@ -60,6 +60,8 @@ export function getHighlightStyles(rootId: string): string {
     .selector-picker-xpath-meta { display: flex; align-items: center; gap: 6px; }
     .selector-picker-score-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; padding: 1px 6px; font-size: 11px; font-weight: 700; font-family: ui-monospace, monospace; border: 1.5px solid; border-radius: 4px; line-height: 1.4; }
     .selector-picker-strategy-tag { display: inline-block; padding: 1px 6px; font-size: 10px; font-weight: 500; color: #94a3b8; background: #1e293b; border-radius: 3px; white-space: nowrap; }
+    .selector-picker-unique-badge { display: inline-block; padding: 1px 6px; font-size: 9px; font-weight: 600; color: #22c55e; background: rgba(34,197,94,0.12); border-radius: 3px; text-transform: uppercase; letter-spacing: 0.03em; vertical-align: middle; }
+    .selector-picker-multi-hint { display: inline-block; padding: 1px 6px; font-size: 9px; font-weight: 500; color: #eab308; background: rgba(234,179,8,0.1); border-radius: 3px; white-space: nowrap; }
     .selector-picker-xpath-row + .selector-picker-xpath-row { margin-top: 0; padding-top: 10px; border-top: 1px dashed #334155; }
     .selector-picker-divider { border: none; border-top: 1px solid #334155; margin: 12px 0; }
     .selector-picker-xpath-alts { margin-bottom: 12px; }
