@@ -71,5 +71,19 @@ export function getHighlightStyles(rootId: string): string {
     .selector-picker-alts-count { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 4px; font-size: 10px; font-weight: 700; color: #94a3b8; background: #1e293b; border-radius: 8px; }
     .selector-picker-alts-content { overflow: hidden; max-height: 0; opacity: 0; transition: max-height 0.2s ease, opacity 0.15s ease, margin 0.2s ease; margin-top: 0; }
     .selector-picker-alts-content.selector-picker-alts-expanded { max-height: 500px; opacity: 1; margin-top: 4px; }
+
+    .selector-picker-verificator { padding: 10px 16px; border-bottom: 1px solid #334155; }
+    .selector-picker-verify-row { display: flex; align-items: center; gap: 8px; }
+    .selector-picker-verify-input { flex: 1; padding: 7px 10px; border: 1px solid #334155; border-radius: 6px; background: #0f172a; color: #e2e8f0; font-size: 12px; font-family: ui-monospace, monospace; outline: none; }
+    .selector-picker-verify-input:focus { border-color: #6366f1; }
+    .selector-picker-verify-input::placeholder { color: #64748b; }
+    .selector-picker-verify-type { display: inline-block; padding: 2px 7px; font-size: 10px; font-weight: 600; color: #94a3b8; background: #1e293b; border-radius: 3px; white-space: nowrap; text-transform: uppercase; min-width: 32px; text-align: center; }
+    .selector-picker-verify-result { display: flex; align-items: center; gap: 8px; margin-top: 8px; min-height: 22px; }
+    .selector-picker-verify-match-count { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; font-size: 11px; font-weight: 600; border-radius: 4px; }
+    .selector-picker-verify-match-count.match-found { color: #22c55e; background: rgba(34,197,94,0.12); }
+    .selector-picker-verify-match-count.match-none { color: #94a3b8; background: #1e293b; }
+    .selector-picker-verify-error { color: #ef4444; font-size: 11px; word-break: break-all; }
+
+    .selector-picker-verify-highlight { position: fixed; pointer-events: none; outline: 2px solid #22c55e; outline-offset: 1px; background: rgba(34,197,94,0.08); border-radius: 2px; z-index: 2147483646; }
   `;
 }
