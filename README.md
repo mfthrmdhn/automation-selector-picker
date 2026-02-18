@@ -58,19 +58,6 @@ Set or confirm the shortcut at `chrome://extensions/shortcuts` (Chrome) or in th
 5. Optionally use **Verify Locator**: paste an XPath, CSS, or Playwright locator to see how many elements it matches and where they are on the page.
 6. Use **Copy** next to each locator, **Close** or `Esc` to close the panel, or press the shortcut again to turn the picker off.
 
-## Project structure
-
-- **`src/`**
-  - **`content/`** – Content script: overlay, highlighter, event manager, locator panel and verification UI.
-  - **`popup/`** – Extension popup (React): shortcut hint, test ID attribute setting, “Open picker now”.
-  - **`background/`** – Service worker (Chrome) / background script.
-  - **`core/`** – Selector engine, XPath/CSS generation, attribute analysis, Playwright candidate generation, scoring (XPath + Playwright), locator verifier.
-  - **`adapters/`** – Framework-specific output: Playwright (ranked), Cypress, Selenium (used internally or for future UI).
-  - **`types/`** – Locator types and scored candidate interfaces.
-  - **`utils/`** – String helpers (e.g. escaping).
-- **`manifests/`** – `chrome.json`, `firefox.json` (copied into `public/` or `dist/` by build scripts).
-- **`tests/`** – Vitest tests for selector engine, XPath, CSS, Playwright adapter/scorer, locator verifier.
-
 ## Tech stack
 
 - TypeScript, React (popup), Vite (build), Vitest (tests).
