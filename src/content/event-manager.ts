@@ -4,6 +4,7 @@
 
 import { updateHighlight, createHighlightElement, getHighlightStyles } from './highlighter';
 import { getLocatorsForElement } from '../core/selector-engine';
+import { verifyLocator, detectLocatorType } from '../core/locator-verifier';
 import type { ScoredXPath, ScoredPlaywright } from '../types/locator.types';
 
 const ROOT_ID = 'selector-picker-root';
@@ -43,25 +44,128 @@ export function createOverlay(root: HTMLDivElement): {
   h3.textContent = 'Element locators';
   const actions = document.createElement('div');
   actions.className = 'selector-picker-panel-actions';
-  const pickAnotherBtn = document.createElement('button');
-  pickAnotherBtn.type = 'button';
-  pickAnotherBtn.className = 'selector-picker-btn selector-picker-pick-another';
-  pickAnotherBtn.textContent = 'Pick another';
+  const verifyBtn = document.createElement('button');
+  verifyBtn.type = 'button';
+  verifyBtn.className = 'selector-picker-btn selector-picker-pick-another';
+  verifyBtn.textContent = 'Verify Locator';
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
   closeBtn.className = 'selector-picker-btn selector-picker-close';
   closeBtn.textContent = 'Close';
-  actions.appendChild(pickAnotherBtn);
+  actions.appendChild(verifyBtn);
   actions.appendChild(closeBtn);
   header.appendChild(h3);
   header.appendChild(actions);
+
+  // -- Verificator section --
+  const verificator = document.createElement('div');
+  verificator.className = 'selector-picker-verificator';
+
+  const verifyRow = document.createElement('div');
+  verifyRow.className = 'selector-picker-verify-row';
+
+  const verifyInput = document.createElement('input');
+  verifyInput.type = 'text';
+  verifyInput.className = 'selector-picker-verify-input';
+  verifyInput.placeholder = 'Type XPath, CSS, or Playwright locator\u2026';
+  verifyInput.spellcheck = false;
+
+  const verifyTypeBadge = document.createElement('span');
+  verifyTypeBadge.className = 'selector-picker-verify-type';
+  verifyTypeBadge.textContent = 'CSS';
+
+  verifyRow.appendChild(verifyInput);
+  verifyRow.appendChild(verifyTypeBadge);
+
+  const verifyResultDiv = document.createElement('div');
+  verifyResultDiv.className = 'selector-picker-verify-result';
+
+  verificator.appendChild(verifyRow);
+  verificator.appendChild(verifyResultDiv);
+
+  // -- Verify highlight overlays container --
+  const verifyHighlightsContainer = document.createElement('div');
+  verifyHighlightsContainer.className = 'selector-picker-verify-highlights';
+
+  function clearVerifyHighlights() {
+    while (verifyHighlightsContainer.firstChild) {
+      verifyHighlightsContainer.firstChild.remove();
+    }
+  }
+
+  function highlightVerifyMatches(elements: Element[]) {
+    clearVerifyHighlights();
+    for (const el of elements) {
+      const rect = el.getBoundingClientRect();
+      const overlay = document.createElement('div');
+      overlay.className = 'selector-picker-verify-highlight';
+      overlay.style.top = `${rect.top}px`;
+      overlay.style.left = `${rect.left}px`;
+      overlay.style.width = `${rect.width}px`;
+      overlay.style.height = `${rect.height}px`;
+      verifyHighlightsContainer.appendChild(overlay);
+    }
+  }
+
+  function runVerification() {
+    const input = verifyInput.value.trim();
+    while (verifyResultDiv.firstChild) verifyResultDiv.firstChild.remove();
+    clearVerifyHighlights();
+
+    if (!input) return;
+
+    const testIdAttr = (panel.dataset.testIdAttr) || 'data-testid';
+    const result = verifyLocator(input, testIdAttr);
+
+    if (result.error) {
+      const errSpan = document.createElement('span');
+      errSpan.className = 'selector-picker-verify-error';
+      errSpan.textContent = result.error;
+      verifyResultDiv.appendChild(errSpan);
+      return;
+    }
+
+    const countBadge = document.createElement('span');
+    countBadge.className = 'selector-picker-verify-match-count';
+    const n = result.matches.length;
+    if (n > 0) {
+      countBadge.classList.add('match-found');
+      countBadge.textContent = `${n} element${n === 1 ? '' : 's'} matched`;
+    } else {
+      countBadge.classList.add('match-none');
+      countBadge.textContent = '0 elements matched';
+    }
+    verifyResultDiv.appendChild(countBadge);
+
+    if (n > 0) {
+      highlightVerifyMatches(result.matches);
+    }
+  }
+
+  verifyInput.addEventListener('input', () => {
+    const val = verifyInput.value.trim();
+    verifyTypeBadge.textContent = val ? detectLocatorType(val).toUpperCase() : 'CSS';
+  });
+
+  verifyInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      runVerification();
+    }
+  });
+
+  verifyBtn.addEventListener('click', () => {
+    runVerification();
+  });
 
   const locatorsDiv = document.createElement('div');
   locatorsDiv.className = 'selector-picker-locators';
 
   panel.appendChild(header);
+  panel.appendChild(verificator);
   panel.appendChild(locatorsDiv);
   root.appendChild(panel);
+  root.appendChild(verifyHighlightsContainer);
 
   function setCurrentElement(el: Element | null) {
     currentElement = el;
@@ -77,6 +181,7 @@ export function createOverlay(root: HTMLDivElement): {
   }
   function hidePanel() {
     panel.classList.remove('selector-picker-panel-visible');
+    clearVerifyHighlights();
   }
 
   function createLocatorRow(label: string, value: string, id: string): HTMLDivElement {
@@ -249,12 +354,18 @@ export function createOverlay(root: HTMLDivElement): {
 
   function showPanelForElement(element: Element) {
     chrome.storage.sync.get({ testIdAttribute: 'data-testid' }, (result) => {
+      const testId = result.testIdAttribute || 'data-testid';
+      panel.dataset.testIdAttr = testId;
       const locators = getLocatorsForElement(element, {
-        testIdAttribute: result.testIdAttribute || 'data-testid',
+        testIdAttribute: testId,
       });
       const container = panel.querySelector('.selector-picker-locators');
       if (!container) return;
       while (container.firstChild) container.firstChild.remove();
+
+      // Clear previous verify state
+      clearVerifyHighlights();
+      while (verifyResultDiv.firstChild) verifyResultDiv.firstChild.remove();
 
       function appendDivider() {
         const hr = document.createElement('hr');
@@ -413,9 +524,6 @@ export function attachOverlayListeners(
   document.addEventListener('click', onClick, true);
 
   panel.querySelector('.selector-picker-close')?.addEventListener('click', () => api.hidePanel());
-  panel.querySelector('.selector-picker-pick-another')?.addEventListener('click', () => {
-    api.hidePanel();
-  });
 
   return () => {
     document.removeEventListener('mousemove', onMouseMove, true);
