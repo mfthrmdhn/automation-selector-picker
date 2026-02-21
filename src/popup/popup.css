@@ -5,6 +5,7 @@ body {
   font-family: system-ui, -apple-system, sans-serif;
   font-size: 13px;
   color: #1e293b;
+  background-color: #ffffff;
 }
 
 .popup {
@@ -73,6 +74,8 @@ kbd {
   font-family: ui-monospace, monospace;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
+  background-color: #ffffff;
+  color: #1e293b;
 }
 
 .setting-input:focus {

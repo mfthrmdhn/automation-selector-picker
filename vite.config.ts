@@ -1,5 +1,4 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig, type PluginOption } from 'vite';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
@@ -20,7 +19,7 @@ function contentScriptIIFE() {
 export default defineConfig({
   base: './',
   publicDir: false, // avoid conflict: we use public/ as outDir for the extension
-  plugins: [react(), contentScriptIIFE()],
+  plugins: [contentScriptIIFE()] as PluginOption[],
   resolve: {
     alias: { '@': path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'src') },
   },

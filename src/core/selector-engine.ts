@@ -5,7 +5,7 @@
 
 import type { ElementLocators } from '../types/locator.types';
 import { generateRankedXPaths } from './xpath-generator';
-import { generateCSS } from './css-generator';
+import { generateRankedCSS } from './css-generator';
 import { analyzeAttributes } from './attribute-analyzer';
 import { generateRankedPlaywright } from '../adapters/playwright-adapter';
 
@@ -21,7 +21,8 @@ export function getLocatorsForElement(
   const testIdAttribute = options.testIdAttribute ?? 'data-testid';
   const xpathCandidates = generateRankedXPaths(element);
   const xpath = xpathCandidates[0]?.xpath ?? '//*';
-  const css = generateCSS(element);
+  const cssCandidates = generateRankedCSS(element);
+  const css = cssCandidates[0]?.selector ?? '';
   const attrs = analyzeAttributes(element, testIdAttribute);
 
   const other: Record<string, string> = {};
@@ -40,6 +41,7 @@ export function getLocatorsForElement(
     xpath,
     xpathCandidates,
     css,
+    cssCandidates,
     playwright,
     playwrightCandidates,
     other,

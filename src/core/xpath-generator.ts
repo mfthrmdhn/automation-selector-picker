@@ -35,7 +35,7 @@ import { xpathMatchesElement } from './uniqueness-checker';
 import { scoreXPath } from './xpath-scorer';
 import type { ScoredXPath } from '../types/locator.types';
 
-const TEST_ID_ATTRS = ['data-testid', 'data-qa', 'data-cy', 'data-test-id'];
+const TEST_ID_ATTRS = ['data-testid', 'data-qa', 'data-cy', 'data-test-id', 'data-qaid'] as const;
 /** Max length of text used in contains(); try shortest unique prefix from these lengths. */
 const TEXT_PREFIX_LENGTHS = [20, 35, 50, 80];
 /** Max text length to attempt direct text() matching (short, stable visible text). */
@@ -53,15 +53,15 @@ interface XPathCandidate {
 // Utility helpers
 // ---------------------------------------------------------------------------
 
-/** Escape value for use inside an XPath quoted attribute (single or double quotes). */
+/** Escape value for use inside an XPath quoted attribute (double quotes preferred). */
 function escapeXPathAttr(value: string): string {
   if (value.includes("'") && value.includes('"')) {
     return `concat('${value.replace(/'/g, "', \"'\", '")}')`;
   }
-  if (value.includes("'")) {
-    return `"${value.replace(/"/g, '""')}"`;
+  if (value.includes('"')) {
+    return `'${value}'`;
   }
-  return `'${value}'`;
+  return `"${value}"`;
 }
 
 /** Heuristic: id looks auto-generated / dynamic (e.g. "btn-123", "item-abc-123", UUIDs). */

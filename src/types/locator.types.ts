@@ -41,6 +41,34 @@ export interface ScoredXPath {
 }
 
 /**
+ * Breakdown of individual scoring factors for a CSS candidate (each 0-100).
+ */
+export interface CSSScoreBreakdown {
+  /** How resilient the strategy is to DOM changes (id/test-id=100 ... structural=10). */
+  stability: number;
+  /** How many qualifying conditions the selector uses (more = more precise). */
+  specificity: number;
+  /** Shorter selectors score higher. */
+  brevity: number;
+  /** Fewer combinator levels (>, space, +, ~) score higher. */
+  depth: number;
+}
+
+/**
+ * A single CSS selector candidate with its weighted score and breakdown.
+ */
+export interface ScoredCSS {
+  /** The CSS selector string. */
+  selector: string;
+  /** Human-readable strategy label, e.g. "id", "data-testid", "tag-class". */
+  strategy: string;
+  /** Weighted total score (0-100). */
+  score: number;
+  /** Per-factor score breakdown. */
+  breakdown: CSSScoreBreakdown;
+}
+
+/**
  * Breakdown of individual scoring factors for a Playwright candidate (each 0-100).
  */
 export interface PlaywrightScoreBreakdown {
@@ -77,7 +105,10 @@ export interface ElementLocators {
   xpath: string;
   /** All XPath candidates, sorted by score descending (best first). */
   xpathCandidates: ScoredXPath[];
+  /** Best-scored CSS selector (backward compatible). */
   css: string;
+  /** All CSS candidates, sorted by score descending (best first). */
+  cssCandidates: ScoredCSS[];
   /** Best-scored Playwright locator (backward compatible). */
   playwright: string;
   /** All Playwright candidates, sorted by score descending (best first). */

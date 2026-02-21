@@ -275,7 +275,8 @@ function collectPlaywrightCandidates(
     push(`page.locator('${esc(css)}')`, 'css-locator');
   }
 
-  // 12. XPath fallback
+  // 12. XPath fallback — XPath string literals use double quotes so no escaping needed.
+  // The replace is kept as a safety net for any edge-case single quotes (e.g. concat expressions).
   if (xpath) {
     push(`page.locator('${xpath.replace(/'/g, "\\'")}')`, 'xpath-locator');
   }

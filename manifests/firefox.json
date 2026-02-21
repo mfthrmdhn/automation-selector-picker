@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Automation Selector Picker",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Pick elements and get XPath, CSS, Playwright locators. Activate with keyboard shortcut.",
   "permissions": ["activeTab", "scripting", "storage"],
   "background": { "scripts": ["background.js"] },

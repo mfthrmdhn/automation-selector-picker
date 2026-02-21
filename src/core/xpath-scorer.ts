@@ -1,8 +1,12 @@
 /**
  * Scores XPath candidates using a weighted formula across four factors:
- *   stability (0.45) + brevity (0.25) + depth (0.15) + predicates (0.15)
+ *   stability (0.45) + depth (0.25) + predicates (0.20) + brevity (0.10)
  *
  * Each factor produces a 0-100 sub-score; the weighted total is also 0-100.
+ *
+ * Depth and predicates are weighted above brevity: a shorter XPath that
+ * is structurally deep or overloaded with conditions is less reliable than
+ * a longer but shallow, simple expression.
  */
 
 import type { ScoredXPath, XPathScoreBreakdown } from '../types/locator.types';
@@ -10,10 +14,10 @@ import type { ScoredXPath, XPathScoreBreakdown } from '../types/locator.types';
 // ---------------------------------------------------------------------------
 // Weight constants (must sum to 1.0)
 // ---------------------------------------------------------------------------
-export const WEIGHT_STABILITY = 0.45;
-export const WEIGHT_BREVITY = 0.25;
-export const WEIGHT_DEPTH = 0.15;
-export const WEIGHT_PREDICATES = 0.15;
+export const WEIGHT_STABILITY   = 0.45;
+export const WEIGHT_DEPTH       = 0.25;  // ↑ was 0.15 — shallower XPaths are more reliable
+export const WEIGHT_PREDICATES  = 0.20;  // ↑ was 0.15 — fewer brackets = simpler, more stable
+export const WEIGHT_BREVITY     = 0.10;  // ↓ was 0.25 — length matters least
 
 // ---------------------------------------------------------------------------
 // Stability lookup – maps strategy labels to a 0-100 resilience score
@@ -26,6 +30,7 @@ const STABILITY_SCORES: Record<string, number> = {
   'data-qa': 90,
   'data-cy': 90,
   'data-test-id': 90,
+  'data-qaid': 90,
   'role+aria-label': 85,
   'aria-label': 80,
   title: 75,
@@ -123,10 +128,10 @@ export function scoreXPath(xpath: string, strategy: string): ScoredXPath {
   };
 
   const score = round(
-    breakdown.stability * WEIGHT_STABILITY +
-      breakdown.brevity * WEIGHT_BREVITY +
-      breakdown.depth * WEIGHT_DEPTH +
-      breakdown.predicates * WEIGHT_PREDICATES
+    breakdown.stability  * WEIGHT_STABILITY  +
+    breakdown.depth      * WEIGHT_DEPTH      +
+    breakdown.predicates * WEIGHT_PREDICATES +
+    breakdown.brevity    * WEIGHT_BREVITY
   );
 
   return { xpath, strategy, score, breakdown };

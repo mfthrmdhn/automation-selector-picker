@@ -5,7 +5,7 @@
 import { updateHighlight, createHighlightElement, getHighlightStyles } from './highlighter';
 import { getLocatorsForElement } from '../core/selector-engine';
 import { verifyLocator, detectLocatorType } from '../core/locator-verifier';
-import type { ScoredXPath, ScoredPlaywright } from '../types/locator.types';
+import type { ScoredXPath, ScoredPlaywright, ScoredCSS } from '../types/locator.types';
 
 const ROOT_ID = 'selector-picker-root';
 
@@ -352,6 +352,61 @@ export function createOverlay(root: HTMLDivElement): {
     return row;
   }
 
+  function createCSSCandidateRow(
+    candidate: ScoredCSS,
+    index: number
+  ): HTMLDivElement {
+    const row = document.createElement('div');
+    row.className = 'selector-picker-row selector-picker-xpath-row';
+
+    const header = document.createElement('div');
+    header.className = 'selector-picker-xpath-header';
+
+    const labelEl = document.createElement('label');
+    const rowId = `picker-css-${index}`;
+    labelEl.htmlFor = rowId;
+    labelEl.textContent = index === 0 ? 'CSS' : `CSS (Alt ${index})`;
+
+    const meta = document.createElement('span');
+    meta.className = 'selector-picker-xpath-meta';
+
+    const scoreBadge = document.createElement('span');
+    scoreBadge.className = 'selector-picker-score-badge';
+    scoreBadge.textContent = `${Math.round(candidate.score)}`;
+    scoreBadge.style.borderColor = getScoreColor(candidate.score);
+    scoreBadge.style.color = getScoreColor(candidate.score);
+
+    const strategyTag = document.createElement('span');
+    strategyTag.className = 'selector-picker-strategy-tag';
+    strategyTag.textContent = candidate.strategy;
+
+    meta.appendChild(scoreBadge);
+    meta.appendChild(strategyTag);
+    header.appendChild(labelEl);
+    header.appendChild(meta);
+
+    const pre = document.createElement('pre');
+    pre.id = rowId;
+    pre.textContent = candidate.selector || '—';
+    pre.setAttribute('contenteditable', 'false');
+
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.textContent = 'Copy';
+    copyBtn.className = 'selector-picker-copy';
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(candidate.selector || '').then(() => {
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
+      });
+    });
+
+    row.appendChild(header);
+    row.appendChild(pre);
+    row.appendChild(copyBtn);
+    return row;
+  }
+
   function showPanelForElement(element: Element) {
     chrome.storage.sync.get({ testIdAttribute: 'data-testid' }, (result) => {
       const testId = result.testIdAttribute || 'data-testid';
@@ -465,7 +520,51 @@ export function createOverlay(root: HTMLDivElement): {
 
       appendDivider();
 
-      container.appendChild(createLocatorRow('CSS', locators.css, 'picker-css'));
+      // Primary CSS (always visible)
+      const cssCandidates = locators.cssCandidates.slice(0, 3);
+      if (cssCandidates.length > 0) {
+        container.appendChild(createCSSCandidateRow(cssCandidates[0], 0));
+      } else {
+        container.appendChild(createLocatorRow('CSS', locators.css, 'picker-css'));
+      }
+
+      // Alternative CSS selectors in a collapsible section
+      if (cssCandidates.length > 1) {
+        const cssAltSection = document.createElement('div');
+        cssAltSection.className = 'selector-picker-xpath-alts';
+
+        const cssToggle = document.createElement('button');
+        cssToggle.type = 'button';
+        cssToggle.className = 'selector-picker-alts-toggle';
+        const cssChevron = document.createElement('span');
+        cssChevron.className = 'selector-picker-alts-chevron';
+        cssChevron.textContent = '\u25b6';
+        const cssToggleLabel = document.createTextNode(' CSS Alternatives ');
+        const cssAltCount = document.createElement('span');
+        cssAltCount.className = 'selector-picker-alts-count';
+        cssAltCount.textContent = String(cssCandidates.length - 1);
+        cssToggle.appendChild(cssChevron);
+        cssToggle.appendChild(cssToggleLabel);
+        cssToggle.appendChild(cssAltCount);
+        cssToggle.setAttribute('aria-expanded', 'false');
+
+        const cssAltContent = document.createElement('div');
+        cssAltContent.className = 'selector-picker-alts-content';
+
+        for (let i = 1; i < cssCandidates.length; i++) {
+          cssAltContent.appendChild(createCSSCandidateRow(cssCandidates[i], i));
+        }
+
+        cssToggle.addEventListener('click', () => {
+          const expanded = cssAltContent.classList.toggle('selector-picker-alts-expanded');
+          cssToggle.setAttribute('aria-expanded', String(expanded));
+          cssChevron.textContent = expanded ? '\u25bc' : '\u25b6';
+        });
+
+        cssAltSection.appendChild(cssToggle);
+        cssAltSection.appendChild(cssAltContent);
+        container.appendChild(cssAltSection);
+      }
 
       const otherEntries = Object.entries(locators.other);
       if (otherEntries.length > 0) {

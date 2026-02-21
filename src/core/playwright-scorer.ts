@@ -1,8 +1,11 @@
 /**
  * Scores Playwright locator candidates using a weighted formula across four factors:
- *   stability (0.40) + readability (0.25) + brevity (0.20) + uniqueness (0.15)
+ *   stability (0.40) + readability (0.25) + uniqueness (0.20) + brevity (0.15)
  *
  * Each factor produces a 0-100 sub-score; the weighted total is also 0-100.
+ *
+ * Uniqueness is weighted above brevity: a shorter locator that matches multiple
+ * elements is strictly worse than a longer one that pinpoints exactly one.
  */
 
 import type { ScoredPlaywright, PlaywrightScoreBreakdown } from '../types/locator.types';
@@ -12,8 +15,8 @@ import type { ScoredPlaywright, PlaywrightScoreBreakdown } from '../types/locato
 // ---------------------------------------------------------------------------
 export const WEIGHT_STABILITY = 0.40;
 export const WEIGHT_READABILITY = 0.25;
-export const WEIGHT_BREVITY = 0.20;
-export const WEIGHT_UNIQUENESS = 0.15;
+export const WEIGHT_UNIQUENESS = 0.20;
+export const WEIGHT_BREVITY = 0.15;
 
 // ---------------------------------------------------------------------------
 // Stability lookup – maps strategy labels to a 0-100 resilience score
@@ -118,10 +121,10 @@ export function scorePlaywright(
   };
 
   const score = round(
-    breakdown.stability * WEIGHT_STABILITY +
+    breakdown.stability   * WEIGHT_STABILITY   +
     breakdown.readability * WEIGHT_READABILITY +
-    breakdown.brevity * WEIGHT_BREVITY +
-    breakdown.uniqueness * WEIGHT_UNIQUENESS,
+    breakdown.uniqueness  * WEIGHT_UNIQUENESS  +
+    breakdown.brevity     * WEIGHT_BREVITY,
   );
 
   return { locator, strategy, score, breakdown };

@@ -40,7 +40,7 @@ export function getHighlightStyles(rootId: string): string {
     html.selector-picker-active, html.selector-picker-active * { cursor: crosshair !important; }
     .selector-picker-hint { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a1a2e; color: #eee; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-family: system-ui, sans-serif; pointer-events: none; box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
     .${HIGHLIGHT_CLASS} { position: fixed; pointer-events: none; outline: 2px solid #6366f1; outline-offset: 2px; border-radius: 2px; transition: top 0.05s, left 0.05s, width 0.05s, height 0.05s; }
-    .selector-picker-panel { position: fixed; bottom: 24px; right: 24px; width: 420px; max-width: calc(100vw - 48px); max-height: 70vh; background: #1a1a2e; color: #e2e8f0; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); font-family: system-ui, sans-serif; pointer-events: auto; overflow: hidden; opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0.2s; }
+    .selector-picker-panel { position: fixed; bottom: 24px; right: 24px; width: 420px; max-width: calc(100vw - 48px); max-height: 70vh; background: #1a1a2e; color: #e2e8f0; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); font-family: system-ui, sans-serif; pointer-events: auto; overflow: hidden; opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0.2s; color-scheme: dark; }
     .selector-picker-panel-visible { opacity: 1; visibility: visible; }
     .selector-picker-panel-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #334155; }
     .selector-picker-panel-header h3 { margin: 0; font-size: 14px; font-weight: 600; }
@@ -52,7 +52,7 @@ export function getHighlightStyles(rootId: string): string {
     .selector-picker-locators { padding: 12px 16px; overflow: auto; max-height: 50vh; }
     .selector-picker-row { margin-bottom: 12px; }
     .selector-picker-row label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; }
-    .selector-picker-row pre { margin: 0; padding: 8px; background: #0f172a; border-radius: 6px; font-size: 11px; white-space: pre-wrap; word-break: break-all; overflow-x: auto; }
+    .selector-picker-row pre { margin: 0; padding: 8px; background: #0f172a; color: #e2e8f0; border-radius: 6px; font-size: 11px; white-space: pre-wrap; word-break: break-all; overflow-x: auto; }
     .selector-picker-copy { margin-top: 4px; padding: 4px 10px; font-size: 11px; border: none; border-radius: 4px; background: #334155; color: #e2e8f0; cursor: pointer; }
     .selector-picker-copy:hover { background: #475569; }
     .selector-picker-xpath-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
@@ -65,7 +65,7 @@ export function getHighlightStyles(rootId: string): string {
     .selector-picker-xpath-row + .selector-picker-xpath-row { margin-top: 0; padding-top: 10px; border-top: 1px dashed #334155; }
     .selector-picker-divider { border: none; border-top: 1px solid #334155; margin: 12px 0; }
     .selector-picker-xpath-alts { margin-bottom: 12px; }
-    .selector-picker-alts-toggle { display: flex; align-items: center; gap: 6px; width: 100%; padding: 6px 0; border: none; background: none; color: #94a3b8; font-size: 11px; font-weight: 600; font-family: system-ui, sans-serif; cursor: pointer; text-transform: uppercase; letter-spacing: 0.03em; }
+    .selector-picker-alts-toggle { display: flex; align-items: center; gap: 6px; width: 100%; padding: 6px 0; border: none; background: transparent; color: #94a3b8; font-size: 11px; font-weight: 600; font-family: system-ui, sans-serif; cursor: pointer; text-transform: uppercase; letter-spacing: 0.03em; }
     .selector-picker-alts-toggle:hover { color: #e2e8f0; }
     .selector-picker-alts-chevron { font-size: 8px; transition: transform 0.15s; display: inline-block; }
     .selector-picker-alts-count { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 4px; font-size: 10px; font-weight: 700; color: #94a3b8; background: #1e293b; border-radius: 8px; }
