@@ -5,7 +5,7 @@
   "description": "Pick elements and get XPath, CSS, Playwright locators. Activate with keyboard shortcut.",
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": ["<all_urls>"],
-  "background": { "service_worker": "background.js" },
+  "background": { "scripts": ["background.js"] },
   "action": { "default_popup": "popup.html", "default_title": "Web Automation Selector Picker" },
   "browser_specific_settings": {
     "gecko": {
