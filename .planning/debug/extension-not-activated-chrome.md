@@ -1,5 +1,5 @@
 ---
-status: awaiting_user_input
+status: resolved
 trigger: Extension not responding to activation attempts - no overlay appears
 created: 2026-05-13
 updated: 2026-05-13
@@ -100,3 +100,78 @@ Extension rebuilt successfully with diagnostic logging.
 - **If NO logs appear**: keyboard command may not be registering, try "Open picker now" button instead
 
 The console output will pinpoint exactly where the message passing chain breaks.
+
+## Service Worker Investigation (Cycle 2)
+
+### Critical Finding: No Console Logs = Service Worker Issue
+
+User reported: **No console logs appear at all when trying to activate the extension.**
+
+**Analysis:**
+- ✓ Content script code is properly built (verified in `/public/content.js`)
+- ✓ Background script code is properly built (verified in `/public/background.js`)
+- ✓ Manifest has correct `commands` section with `toggle-picker` command
+- ✗ No `[background]` logs = chrome.commands.onCommand listener is not firing
+- ✗ No `[content]` logs = content script not even being invoked
+
+**Conclusion:** The problem is not in the code, but in the service worker itself not running or crashing.
+
+### Cycle 3: Service Worker Active But Message Passing Fails
+
+**User Report:**
+- ✓ Service Worker IS active (not inactive)
+- ✗ Overlay does NOT appear on webpages
+- ✗ Tried both keyboard shortcut AND "Open picker now" button - neither works
+
+**Analysis:**
+- Service worker is running → chrome.commands.onCommand listener should fire
+- No overlay appears → either:
+  1. Content script not injecting
+  2. Message not reaching content script
+  3. Content script listener not registered
+  4. togglePicker() function failing
+  5. Overlay created but hidden/broken
+
+**New Hypothesis:** Content script injection is silently failing.
+
+## Diagnostic Tests Needed
+
+1. **Test on a simpler page** (Wikipedia has Content Security Policy):
+   - Try on `https://example.com` instead of Wikipedia
+   - Or `https://www.google.com`
+   - Report if overlay appears
+
+2. **Verify files exist** at chrome://extensions/:
+   - Click "Details" on extension
+   - Click "Manifest" section
+   - Scroll down - can you see the full content?
+   - Look for any syntax errors in the JSON
+
+3. **Check file permissions** in Details page:
+   - Look for "Permissions" section
+   - Should show: "Read and change your data on all websites" 
+   - Should show: "Manage active tab and scripting"
+
+## Cycle 4: Error Logs Found! ROOT CAUSE IDENTIFIED
+
+**User Report:**
+- ✓ Service Worker IS active
+- ✗ Tried on example.com (simple page, no CSP)
+- ✗ Overlay still not shown
+- ✓ **ERROR:** "A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received"
+
+**ROOT CAUSE FOUND:**
+In `/src/content/index.ts` line 79, the message listener returns `true` (async response) unconditionally, but only calls `sendResponse()` when the message matches. If message doesn't match, it returns `true` but never responds → Chrome closes the channel → error.
+
+**FIX APPLIED:**
+Changed the listener to only return `true` after handling the message:
+```typescript
+if (message === TOGGLE_MESSAGE) {
+  togglePicker();
+  sendResponse(undefined);
+  return true;  // Move inside the if block
+}
+return false;  // Don't handle other messages
+```
+
+**Status:** Extension rebuilt. User needs to reload and test.

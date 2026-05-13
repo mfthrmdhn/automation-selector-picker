@@ -75,8 +75,9 @@ chrome.runtime.onMessage.addListener(
       console.log('[content] Message matches TOGGLE_MESSAGE, calling togglePicker');
       togglePicker();
       sendResponse(undefined);
+      return true;
     }
-    return true;
+    return false;
   }
 );
 console.log('[content] onMessage listener registered');
