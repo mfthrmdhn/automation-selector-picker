@@ -22,21 +22,17 @@ function sendToggleToTab(tabId: number): void {
 
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
-    // Open setup page on first install
+    // Open setup page on first install (Chrome only - keyboard shortcuts are unassigned by default in Chrome)
+    // Firefox handles shortcuts differently, so skip this for Firefox
+    const isFirefox = (chrome.runtime as any).getBrowserInfo !== undefined;
+    if (isFirefox) {
+      return;
+    }
+    // Chrome: open setup page
     chrome.tabs.create({
       url: chrome.runtime.getURL('setup.html'),
     });
   }
-});
-
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message.action === 'open-shortcuts') {
-    chrome.tabs.create({
-      url: 'chrome://extensions/shortcuts',
-    });
-    sendResponse({ success: true });
-  }
-  return true;
 });
 
 chrome.commands.onCommand.addListener((command: string) => {

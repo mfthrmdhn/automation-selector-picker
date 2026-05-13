@@ -174,20 +174,23 @@
 
   <script>
     document.getElementById('setupBtn').addEventListener('click', () => {
-      if (chrome && chrome.runtime) {
-        // Use background script to open the shortcuts page
-        chrome.runtime.sendMessage({ action: 'open-shortcuts' }, () => {
-          // Close this window after a short delay
-          setTimeout(() => window.close(), 200);
-        });
-      } else {
-        // Fallback: directly open chrome shortcuts
-        window.location.href = 'chrome://extensions/shortcuts';
-      }
+      // Open shortcuts page in new tab
+      chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+      // Close this setup tab
+      chrome.tabs.getCurrent((tab) => {
+        if (tab && tab.id) {
+          setTimeout(() => chrome.tabs.remove(tab.id), 300);
+        }
+      });
     });
 
     document.getElementById('skipBtn').addEventListener('click', () => {
-      window.close();
+      // Close this setup tab
+      chrome.tabs.getCurrent((tab) => {
+        if (tab && tab.id) {
+          chrome.tabs.remove(tab.id);
+        }
+      });
     });
   </script>
 </body>
