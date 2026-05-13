@@ -31,6 +31,7 @@ export default defineConfig({
         background: path.resolve('src/background/background.ts'),
         content: path.resolve('src/content/index.ts'),
         popup: path.resolve('popup.html'),
+        setup: path.resolve('setup.html'),
       },
       output: {
         entryFileNames: (chunk) => (chunk.name === 'popup' ? 'assets/[name].js' : '[name].js'),

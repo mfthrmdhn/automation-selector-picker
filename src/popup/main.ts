@@ -55,6 +55,15 @@ function buildUI() {
     input.value = (result[STORAGE_KEY] as string) || DEFAULT_TEST_ID_ATTR;
   });
 
+  const setupBtn = el('button', { type: 'button', id: 'setup-shortcuts', className: 'btn' }, [
+    '⚙️ Setup Keyboard Shortcut',
+  ]);
+
+  setupBtn.addEventListener('click', () => {
+    chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+    window.close();
+  });
+
   const openBtn = el('button', { type: 'button', id: 'open-picker', className: 'btn' }, [
     'Open picker now',
   ]);
@@ -89,6 +98,7 @@ function buildUI() {
       el('label', { for: 'test-id-attr' }, ['Test ID attribute (Playwright / teams)']),
       el('div', { className: 'setting-row' }, [input, savedSpan]),
     ]),
+    setupBtn,
     openBtn,
   ]);
 

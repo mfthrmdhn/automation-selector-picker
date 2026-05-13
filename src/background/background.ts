@@ -20,6 +20,15 @@ function sendToggleToTab(tabId: number): void {
   });
 }
 
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === 'install') {
+    // Open setup page on first install
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('setup.html'),
+    });
+  }
+});
+
 chrome.commands.onCommand.addListener((command: string) => {
   console.log('[background] command received:', command);
   if (command !== 'toggle-picker') return;
