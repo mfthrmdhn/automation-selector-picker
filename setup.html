@@ -31,16 +31,30 @@
       margin-bottom: 30px;
       font-size: 14px;
     }
+    .note-box {
+      background: #e3f2fd;
+      border: 1px solid #90caf9;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 24px;
+      font-size: 13px;
+      color: #1565c0;
+      line-height: 1.6;
+    }
+    .note-box strong {
+      display: block;
+      margin-bottom: 6px;
+    }
     .step {
-      margin: 25px 0;
-      padding: 20px;
+      margin: 20px 0;
+      padding: 18px;
       background: #f8f9fa;
       border-radius: 8px;
       border-left: 4px solid #667eea;
     }
     .step h2 {
       color: #1a1a2e;
-      font-size: 16px;
+      font-size: 15px;
       margin-bottom: 12px;
       display: flex;
       align-items: center;
@@ -50,27 +64,32 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 24px;
-      height: 24px;
+      width: 28px;
+      height: 28px;
       background: #667eea;
       color: white;
       border-radius: 50%;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: bold;
+      flex-shrink: 0;
     }
-    .step p {
+    .step ol {
+      margin-left: 20px;
       color: #555;
-      margin-bottom: 12px;
-      font-size: 14px;
-      line-height: 1.6;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    .step li {
+      margin-bottom: 10px;
     }
     code {
       background: #e8eaf6;
       padding: 2px 6px;
       border-radius: 3px;
       font-family: 'Monaco', monospace;
-      font-size: 13px;
+      font-size: 12px;
       color: #667eea;
+      font-weight: 500;
     }
     .shortcut {
       display: inline-block;
@@ -80,42 +99,11 @@
       border-radius: 4px;
       font-weight: 600;
       color: #856404;
-      font-size: 13px;
-    }
-    .button-group {
-      display: flex;
-      gap: 12px;
-      margin-top: 16px;
-    }
-    button {
-      padding: 12px 24px;
-      font-size: 14px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-    .btn-primary {
-      background: #667eea;
-      color: white;
-      flex: 1;
-    }
-    .btn-primary:hover {
-      background: #5568d3;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    }
-    .btn-secondary {
-      background: #f0f0f0;
-      color: #333;
-    }
-    .btn-secondary:hover {
-      background: #e0e0e0;
+      font-size: 12px;
     }
     .alternative {
-      margin-top: 30px;
-      padding: 20px;
+      margin-top: 24px;
+      padding: 16px;
       background: #e8f5e9;
       border-radius: 8px;
       border-left: 4px solid #4caf50;
@@ -123,7 +111,7 @@
     .alternative h3 {
       color: #1b5e20;
       font-size: 14px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
     .alternative p {
       color: #2e7d32;
@@ -137,61 +125,42 @@
 </head>
 <body>
   <div class="container">
-    <h1><span class="icon">🎯</span> Welcome to Automation Selector Picker</h1>
-    <p class="subtitle">Your web automation element picker is ready. Just one quick setup step!</p>
+    <h1><span class="icon">🎯</span> Automation Selector Picker</h1>
+    <p class="subtitle">One quick setup step needed on Chrome</p>
 
-    <div style="background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 12px; margin-bottom: 24px; font-size: 13px; color: #1565c0;">
-      <strong>📌 Note:</strong> Chrome on macOS requires manual keyboard shortcut assignment to avoid conflicts with your system shortcuts. Windows and Linux users may skip this step if you prefer using the "Open picker now" button instead.
+    <div class="note-box">
+      <strong>📌 Chrome macOS Note:</strong> Chrome on macOS requires you to manually assign keyboard shortcuts to extensions to avoid conflicts with system shortcuts. This is a Chrome limitation, not a bug!
     </div>
 
     <div class="step">
       <h2><span class="step-number">1</span> Assign Your Keyboard Shortcut</h2>
-      <p>Chrome requires you to manually assign keyboard shortcuts for extensions to avoid conflicts with your existing shortcuts.</p>
-      <p>Click the button below to open Chrome's keyboard shortcuts manager:</p>
-      <div class="button-group">
-        <button class="btn-primary" id="setupBtn">
-          ⌨️ Setup Keyboard Shortcut
-        </button>
-      </div>
-      <p style="margin-top: 12px; font-size: 12px; color: #999;">When prompted, press: <span class="shortcut">Cmd+Shift+L</span> (Mac) or <span class="shortcut">Ctrl+Shift+L</span> (Windows/Linux)</p>
+      <ol>
+        <li>Copy this address: <code>chrome://extensions/shortcuts</code></li>
+        <li>Open a new tab and paste it into the address bar</li>
+        <li>Find <strong>"Element Locator Picker"</strong> → <strong>"Toggle element locator picker"</strong></li>
+        <li>Click in the shortcut field and press: <span class="shortcut">Cmd+Shift+L</span> (Mac) or <span class="shortcut">Ctrl+Shift+L</span> (Windows)</li>
+        <li>The shortcut is now assigned! ✅</li>
+      </ol>
     </div>
 
     <div class="step">
       <h2><span class="step-number">2</span> Test Your Shortcut</h2>
-      <p>Once assigned, visit any website and press your keyboard shortcut to activate the picker overlay.</p>
-      <p>You should see a crosshair cursor appear, ready to select elements.</p>
+      <ol>
+        <li>Visit any website</li>
+        <li>Press <span class="shortcut">Cmd+Shift+L</span> (or <span class="shortcut">Ctrl+Shift+L</span>)</li>
+        <li>You should see a crosshair cursor appear</li>
+        <li>Click any element to get locators</li>
+      </ol>
     </div>
 
     <div class="alternative">
       <h3>💡 Alternative: Use the Quick Button</h3>
-      <p>If you prefer not to set up a keyboard shortcut, you can always click the extension icon and select <strong>"Open picker now"</strong> to activate the picker.</p>
+      <p>If you prefer not to set up a keyboard shortcut, click the extension icon anytime and select <strong>"Open picker now"</strong> to activate the picker instantly.</p>
     </div>
 
-    <div class="button-group" style="margin-top: 30px;">
-      <button class="btn-secondary" id="skipBtn">Skip Setup</button>
-    </div>
+    <p style="margin-top: 30px; font-size: 12px; color: #999; text-align: center;">
+      You can close this tab now. The extension is ready to use! 🚀
+    </p>
   </div>
-
-  <script>
-    document.getElementById('setupBtn').addEventListener('click', () => {
-      // Open shortcuts page in new tab
-      chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
-      // Close this setup tab
-      chrome.tabs.getCurrent((tab) => {
-        if (tab && tab.id) {
-          setTimeout(() => chrome.tabs.remove(tab.id), 300);
-        }
-      });
-    });
-
-    document.getElementById('skipBtn').addEventListener('click', () => {
-      // Close this setup tab
-      chrome.tabs.getCurrent((tab) => {
-        if (tab && tab.id) {
-          chrome.tabs.remove(tab.id);
-        }
-      });
-    });
-  </script>
 </body>
 </html>
