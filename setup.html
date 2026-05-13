@@ -140,6 +140,10 @@
     <h1><span class="icon">🎯</span> Welcome to Automation Selector Picker</h1>
     <p class="subtitle">Your web automation element picker is ready. Just one quick setup step!</p>
 
+    <div style="background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 12px; margin-bottom: 24px; font-size: 13px; color: #1565c0;">
+      <strong>📌 Note:</strong> Chrome on macOS requires manual keyboard shortcut assignment to avoid conflicts with your system shortcuts. Windows and Linux users may skip this step if you prefer using the "Open picker now" button instead.
+    </div>
+
     <div class="step">
       <h2><span class="step-number">1</span> Assign Your Keyboard Shortcut</h2>
       <p>Chrome requires you to manually assign keyboard shortcuts for extensions to avoid conflicts with your existing shortcuts.</p>
@@ -170,7 +174,16 @@
 
   <script>
     document.getElementById('setupBtn').addEventListener('click', () => {
-      chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+      if (chrome && chrome.runtime) {
+        // Use background script to open the shortcuts page
+        chrome.runtime.sendMessage({ action: 'open-shortcuts' }, () => {
+          // Close this window after a short delay
+          setTimeout(() => window.close(), 200);
+        });
+      } else {
+        // Fallback: directly open chrome shortcuts
+        window.location.href = 'chrome://extensions/shortcuts';
+      }
     });
 
     document.getElementById('skipBtn').addEventListener('click', () => {

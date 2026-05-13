@@ -29,6 +29,16 @@ chrome.runtime.onInstalled.addListener((details) => {
   }
 });
 
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message.action === 'open-shortcuts') {
+    chrome.tabs.create({
+      url: 'chrome://extensions/shortcuts',
+    });
+    sendResponse({ success: true });
+  }
+  return true;
+});
+
 chrome.commands.onCommand.addListener((command: string) => {
   console.log('[background] command received:', command);
   if (command !== 'toggle-picker') return;
